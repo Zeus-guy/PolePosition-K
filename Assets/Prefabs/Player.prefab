@@ -178,6 +178,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
+  CarSkin: {fileID: 3124799276312422027}
+  material_1: {fileID: 2100004, guid: 8bf4d0f8321a1ce4c91923d6a12668bd, type: 3}
+  material_2: {fileID: 2100006, guid: 3d5bad26ead1fec4ea7cb4e3186c9d35, type: 3}
+  material_3: {fileID: 2100004, guid: d58615398b1feae4d8576758de2eb2a2, type: 3}
+  material_4: {fileID: 2100002, guid: d58615398b1feae4d8576758de2eb2a2, type: 3}
 --- !u!114 &3466774584401487325
 MonoBehaviour:
   m_ObjectHideFlags: 0
