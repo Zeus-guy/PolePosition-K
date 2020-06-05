@@ -12,8 +12,8 @@ using TMPro;
 public class SetupPlayer : NetworkBehaviour
 {
     [SyncVar] private int m_ID;
-    [SyncVar] private string m_Name;
-    [SyncVar] private int m_Colour;
+    [SyncVar (hook = nameof(SetName))] private string m_Name;
+    [SyncVar (hook = nameof(SetColour))] private int m_Colour;
 
     [SerializeField] private Renderer CarSkin;
     [SerializeField] private Material material_1;
@@ -48,10 +48,14 @@ public class SetupPlayer : NetworkBehaviour
     public override void OnStartClient()
     {
         base.OnStartClient();
+
+        if (isLocalPlayer)
+            m_PolePositionManager.SetLocalPlayer(this);
+
         m_PlayerInfo.ID = m_ID;
 
         //Asignación del nombre del jugador
-        if (m_Name == null)
+        if (isLocalPlayer)
         {
             _name = GameObject.Find("nombre").GetComponent<InputField>();
             m_Name = _name.text;
@@ -60,9 +64,9 @@ public class SetupPlayer : NetworkBehaviour
             _name.gameObject.SetActive(false);
             CmdChangeName(m_Name);
         }
-        m_PlayerInfo.Name = m_Name;
+        SetName("", m_Name);
 
-        if (m_Colour == 0)
+        if (isLocalPlayer)
         {
             Dropdown Drop_color = GameObject.Find("Colour").GetComponent<Dropdown>();
             m_Colour = Drop_color.value;
@@ -71,23 +75,8 @@ public class SetupPlayer : NetworkBehaviour
             Drop_color.gameObject.SetActive(false);
             CmdChangeColour(m_Colour);
         }
-        Material[] materiales = CarSkin.materials;
-        switch (m_Colour)
-        {
-            case 1:
-                materiales[1] = material_1;
-                break;
-            case 2:
-                materiales[1] = material_2;
-                break;
-            case 3:
-                materiales[1] = material_3;
-                break;
-            case 4:
-                materiales[1] = material_4;
-                break;
-        }
-        CarSkin.materials = materiales;
+        SetColour(0, m_Colour);
+        
         m_PlayerInfo.CurrentLap = 0;
         m_PolePositionManager.AddPlayer(m_PlayerInfo);
     }
@@ -106,6 +95,33 @@ public class SetupPlayer : NetworkBehaviour
         GetComponent<NetworkIdentity>().AssignClientAuthority(this.GetComponent<NetworkIdentity>().connectionToClient);
         m_Colour = color;
     }
+
+    private void SetName(string oldName, string newName)
+    {
+        m_PlayerInfo.Name = newName;
+    }
+
+    private void SetColour(int oldColour, int newColour)
+    {
+        Material[] materiales = CarSkin.materials;
+        switch (newColour)
+        {
+            case 1:
+                materiales[1] = material_1;
+                break;
+            case 2:
+                materiales[1] = material_2;
+                break;
+            case 3:
+                materiales[1] = material_3;
+                break;
+            case 4:
+                materiales[1] = material_4;
+                break;
+        }
+        CarSkin.materials = materiales;
+    }
+
     /// <summary>
     /// Called when the local player object has been set up.
     /// <para>This happens after OnStartClient(), as it is triggered by an ownership message from the server. This is an appropriate place to activate components or functionality that should only be active for the local player, such as cameras and input.</para>
@@ -130,11 +146,23 @@ public class SetupPlayer : NetworkBehaviour
     {
         if (isLocalPlayer)
         {
-            m_PlayerController.enabled = true;
+            //m_PolePositionManager.barrier.SignalAndWait();
+            //m_PlayerController.enabled = true;
             m_PlayerController.OnSpeedChangeEvent += OnSpeedChangeEventHandler;
             ConfigureCamera();
         }
     }
+
+    public void StartGame()
+    {
+        m_PlayerController.enabled = true;
+    }
+    /*void Update()
+    {
+        if (isLocalPlayer)
+            if (m_PolePositionManager.gameStarted)
+                m_PlayerController.enabled = true;
+    }*/
 
     void OnSpeedChangeEventHandler(float speed)
     {

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using Mirror;
 using UnityEngine;
+using System.Threading;
 
 public class PolePositionManager : NetworkBehaviour
 {
@@ -13,6 +14,9 @@ public class PolePositionManager : NetworkBehaviour
     private readonly List<PlayerInfo> m_Players = new List<PlayerInfo>(4);
     private CircuitController m_CircuitController;
     private GameObject[] m_DebuggingSpheres;
+    private float countdown = 3;
+    public bool gameStarted;
+    private SetupPlayer m_LocalSetupPlayer;
 
     private void Awake()
     {
@@ -29,15 +33,38 @@ public class PolePositionManager : NetworkBehaviour
 
     private void Update()
     {
-        if (m_Players.Count == 0)
+        if (m_Players.Count <= 1)
             return;
 
+        if (isServer && !gameStarted)
+        {
+            if (countdown > 0)
+            {
+                countdown -= Time.deltaTime;
+            }
+            else
+            {
+                gameStarted = true;
+                RpcStartGame();
+            }
+        }
+
         UpdateRaceProgress();
+    }
+
+    [ClientRpc]
+    void RpcStartGame()
+    {
+        m_LocalSetupPlayer.StartGame();
     }
 
     public void AddPlayer(PlayerInfo player)
     {
         m_Players.Add(player);
+    }
+    public void SetLocalPlayer(SetupPlayer sp)
+    {
+        m_LocalSetupPlayer = sp;
     }
 
     private class PlayerInfoComparer : Comparer<PlayerInfo>
