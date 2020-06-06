@@ -35,28 +35,31 @@ public class PolePositionManager : NetworkBehaviour
 
     private void Update()
     {
-        if (m_Players.Count <= 0)
+        if (m_Players.Count <= 1)
         {
             if(UI_m.GetCountDown()=="")
                 UI_m.SetCountDown("Waiting for another"+"\n"+" player");
             return;
         }
 
-        if (isServer && !gameStarted)
+        if (!gameStarted)
         {
             if (countdown > -1.5)
             {
                 countdown -= Time.deltaTime;
                 if (countdown > 0)
-                    UI_m.SetCountDown(Math.Round(countdown).ToString());
-                else if(countdown <= 0)
+                    UI_m.EditCountDown(countdown);
+                else if (countdown <= 0)
                     UI_m.SetCountDown("GO!");
             }
             else
             {
                 UI_m.SetCountDown("");
                 gameStarted = true;
-                RpcStartGame();
+                if (isServer)
+                {
+                    RpcStartGame();
+                }
             }
         }
 
