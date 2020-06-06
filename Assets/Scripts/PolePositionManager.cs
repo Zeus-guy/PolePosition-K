@@ -10,6 +10,7 @@ public class PolePositionManager : NetworkBehaviour
 {
     public int numPlayers;
     public NetworkManager networkManager;
+    public UIManager UI_m;
 
     private readonly List<PlayerInfo> m_Players = new List<PlayerInfo>(4);
     private CircuitController m_CircuitController;
@@ -17,6 +18,7 @@ public class PolePositionManager : NetworkBehaviour
     private float countdown = 3;
     public bool gameStarted;
     private SetupPlayer m_LocalSetupPlayer;
+    
 
     private void Awake()
     {
@@ -33,17 +35,26 @@ public class PolePositionManager : NetworkBehaviour
 
     private void Update()
     {
-        if (m_Players.Count <= 1)
+        if (m_Players.Count <= 0)
+        {
+            if(UI_m.GetCountDown()=="")
+                UI_m.SetCountDown("Waiting for another"+"\n"+" player");
             return;
+        }
 
         if (isServer && !gameStarted)
         {
-            if (countdown > 0)
+            if (countdown > -1.5)
             {
                 countdown -= Time.deltaTime;
+                if (countdown > 0)
+                    UI_m.SetCountDown(Math.Round(countdown).ToString());
+                else if(countdown <= 0)
+                    UI_m.SetCountDown("GO!");
             }
             else
             {
+                UI_m.SetCountDown("");
                 gameStarted = true;
                 RpcStartGame();
             }

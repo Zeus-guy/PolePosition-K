@@ -7299,6 +7299,7 @@ MonoBehaviour:
   textSpeed: {fileID: 1475543394}
   textLaps: {fileID: 155323079}
   textPosition: {fileID: 864211679}
+  textCountDown: {fileID: 290305771}
 --- !u!4 &1823041898
 Transform:
   m_ObjectHideFlags: 0
@@ -7426,6 +7427,8 @@ MonoBehaviour:
   syncInterval: 0.1
   numPlayers: 0
   networkManager: {fileID: 0}
+  UI_m: {fileID: 1823041897}
+  gameStarted: 0
 --- !u!4 &1839589614
 Transform:
   m_ObjectHideFlags: 0

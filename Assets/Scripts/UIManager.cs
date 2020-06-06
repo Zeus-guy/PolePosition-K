@@ -23,6 +23,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Text textSpeed;
     [SerializeField] private Text textLaps;
     [SerializeField] private Text textPosition;
+    [SerializeField] private Text textCountDown;
 
     private void Awake()
     {
@@ -71,5 +72,15 @@ public class UIManager : MonoBehaviour
     {
         m_NetworkManager.StartServer();
         ActivateInGameHUD();
+    }
+
+    public void SetCountDown(string t)
+    {
+        textCountDown.text = t;
+    }
+
+    public string GetCountDown()
+    {
+        return textCountDown.text;
     }
 }
