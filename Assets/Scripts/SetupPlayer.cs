@@ -173,4 +173,9 @@ public class SetupPlayer : NetworkBehaviour
     {
         if (Camera.main != null) Camera.main.gameObject.GetComponent<CameraController>().m_Focus = this.gameObject;
     }
+
+    public int GetLap()
+    {
+        return m_PlayerInfo.CurrentLap;
+    }
 }

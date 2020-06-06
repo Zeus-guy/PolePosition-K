@@ -35,7 +35,7 @@ public class PolePositionManager : NetworkBehaviour
 
     private void Update()
     {
-        if (m_Players.Count <= 1)
+        if (m_Players.Count <= 0)
         {
             if(UI_m.GetCountDown()=="")
                 UI_m.SetCountDown("Waiting for another"+"\n"+" player");
@@ -113,10 +113,13 @@ public class PolePositionManager : NetworkBehaviour
         string myRaceOrder = "";
         foreach (var _player in m_Players)
         {
-            myRaceOrder += _player.Name + " ";
+            myRaceOrder += _player.Name + "\n";
         }
 
-        Debug.Log("El orden de carrera es: " + myRaceOrder);
+        UI_m.SetTextPosition(myRaceOrder);
+        UI_m.SetLap(m_LocalSetupPlayer.GetLap());
+
+        //Debug.Log("El orden de carrera es: " + myRaceOrder);
     }
 
     float ComputeCarArcLength(int ID)

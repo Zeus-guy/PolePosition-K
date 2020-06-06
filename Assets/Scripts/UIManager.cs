@@ -103,4 +103,14 @@ public class UIManager : MonoBehaviour
         textCountDown.color = color;
         textCountDown.fontSize = (int)(100*(ratio+0.5f));
     }
+
+    public void SetTextPosition(string text)
+    {
+        textPosition.text = text;
+    }
+
+    public void SetLap(int lap)
+    {
+        textLaps.text = lap + "/3";
+    }
 }

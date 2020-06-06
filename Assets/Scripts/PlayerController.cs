@@ -47,6 +47,9 @@ public class PlayerController : NetworkBehaviour
         }
     }
 
+    [SyncVar] private int checkPoint = 0;
+    [SyncVar (hook = nameof(OnLapChange))] private int curLap = 0;
+
     public delegate void OnSpeedChangeDelegate(float newVal);
 
     public event OnSpeedChangeDelegate OnSpeedChangeEvent;
@@ -217,4 +220,22 @@ public class PlayerController : NetworkBehaviour
     }
 
     #endregion
+
+    void OnTriggerEnter(Collider col)
+    {
+        int nextCheckPoint = (checkPoint + 1)%6;
+        if (int.Parse(col.name) == nextCheckPoint)
+        {
+            checkPoint = nextCheckPoint;
+            if (checkPoint == 0)
+            {
+                curLap++;
+            }
+        } 
+    }
+
+    void OnLapChange(int oldLap, int newLap)
+    {
+        m_PlayerInfo.CurrentLap = newLap;
+    }
 }
