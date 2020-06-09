@@ -79,6 +79,8 @@ public class SetupPlayer : NetworkBehaviour
         
         m_PlayerInfo.CurrentLap = 0;
         m_PolePositionManager.AddPlayer(m_PlayerInfo);
+        m_PlayerInfo.CheckPoint = 0;
+        m_PlayerInfo.CanChangeLap = true;
     }
 
     //Manda el nombre al servidor

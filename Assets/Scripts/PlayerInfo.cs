@@ -17,4 +17,8 @@ public class PlayerInfo : MonoBehaviour
     {
         return Name;
     }
+
+    public int CheckPoint { get; set; }
+    public bool CanChangeLap { get; set; }
+
 }

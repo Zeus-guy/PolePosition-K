@@ -92,7 +92,7 @@ public class PolePositionManager : NetworkBehaviour
 
         public override int Compare(PlayerInfo x, PlayerInfo y)
         {
-            if (this.m_ArcLengths[x.ID] < m_ArcLengths[y.ID])
+            if (this.m_ArcLengths[x.ID] < (m_ArcLengths[y.ID]))
                 return 1;
             else return -1;
         }
@@ -106,12 +106,15 @@ public class PolePositionManager : NetworkBehaviour
         for (int i = 0; i < m_Players.Count; ++i)
         {
             arcLengths[i] = ComputeCarArcLength(i);
+            changeLap(m_Players[i], arcLengths[i]);
         }
 
-        m_Players.Sort(new PlayerInfoComparer(arcLengths));
+        //m_Players.Sort(new PlayerInfoComparer(arcLengths));
+        PlayerInfo[] arr = m_Players.ToArray();
+        Array.Sort(arr, new PlayerInfoComparer(arcLengths));
 
         string myRaceOrder = "";
-        foreach (var _player in m_Players)
+        foreach (var _player in arr)
         {
             myRaceOrder += _player.Name + "\n";
         }
@@ -128,6 +131,7 @@ public class PolePositionManager : NetworkBehaviour
         // path segment and accumulate the arc-length along of the car along
         // the circuit.
         Vector3 carPos = this.m_Players[ID].transform.position;
+        //Debug.Log(ID + ", " + this.m_Players[ID].Name);
 
         int segIdx;
         float carDist;
@@ -147,7 +151,42 @@ public class PolePositionManager : NetworkBehaviour
             minArcL += m_CircuitController.CircuitLength *
                        (m_Players[ID].CurrentLap - 1);
         }
-
+//Debug.Log("i = " + ID + ", minArcL = " + minArcL);
         return minArcL;
+    }
+    public void changeLap(PlayerInfo player, float dist)
+    {
+        if (player.CanChangeLap)
+        {
+            if (player.CheckPoint == 0)
+            {
+                switch (player.CurrentLap)
+                {
+                    case 0:
+                        if (dist > -200)
+                            return;
+                        break;
+                        
+                    case 1:
+                        if (dist > 100)
+                            return;
+                        break;
+                        
+                    case 2:
+                        if (dist > 500)
+                            return;
+                        break;
+                        
+                    case 3:
+                        if (dist > 1000)
+                            return;
+                        break;
+                    default:
+                        return;
+                }
+                player.CurrentLap++;
+                player.CanChangeLap = false;
+            }
+        }
     }
 }

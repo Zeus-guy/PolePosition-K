@@ -47,8 +47,9 @@ public class PlayerController : NetworkBehaviour
         }
     }
 
-    [SyncVar] private int checkPoint = 0;
-    [SyncVar (hook = nameof(OnLapChange))] private int curLap = 0;
+    /*[SyncVar]*/ //private int checkPoint = 0;
+    //private bool canChangeLap = true;
+    //[SyncVar (hook = nameof(OnLapChange))] private int curLap = 0;
 
     public delegate void OnSpeedChangeDelegate(float newVal);
 
@@ -223,19 +224,30 @@ public class PlayerController : NetworkBehaviour
 
     void OnTriggerEnter(Collider col)
     {
-        int nextCheckPoint = (checkPoint + 1)%6;
+        int nextCheckPoint = (m_PlayerInfo.CheckPoint + 1) % 6;
+        int previousCheckPoint = (m_PlayerInfo.CheckPoint - 1) % 6;
+
         if (int.Parse(col.name) == nextCheckPoint)
         {
-            checkPoint = nextCheckPoint;
-            if (checkPoint == 0)
+            m_PlayerInfo.CheckPoint = nextCheckPoint;
+            if (m_PlayerInfo.CheckPoint == 1)
+                m_PlayerInfo.CanChangeLap = true;
+            /*if (checkPoint == 0)
             {
-                curLap++;
-            }
-        } 
+                //curLap++;
+                m_PlayerInfo.CurrentLap++;// = curLap;
+            }*/
+        }
+        else if (int.Parse(col.name) == previousCheckPoint)
+        {
+            if (m_PlayerInfo.CheckPoint != 1)
+                m_PlayerInfo.CheckPoint = previousCheckPoint;
+        }
     }
 
-    void OnLapChange(int oldLap, int newLap)
+    /*void OnLapChange(int oldLap, int newLap)
     {
         m_PlayerInfo.CurrentLap = newLap;
-    }
+    }*/
+    
 }
