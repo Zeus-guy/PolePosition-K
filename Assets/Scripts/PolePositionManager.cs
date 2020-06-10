@@ -5,6 +5,7 @@ using System.Text;
 using Mirror;
 using UnityEngine;
 using System.Threading;
+using System.Diagnostics;
 
 public class PolePositionManager : NetworkBehaviour
 {
@@ -18,6 +19,8 @@ public class PolePositionManager : NetworkBehaviour
     private float countdown = 3;
     public bool gameStarted;
     private SetupPlayer m_LocalSetupPlayer;
+
+    private Stopwatch timer;
     
 
     private void Awake()
@@ -31,6 +34,7 @@ public class PolePositionManager : NetworkBehaviour
             m_DebuggingSpheres[i] = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             m_DebuggingSpheres[i].GetComponent<SphereCollider>().enabled = false;
         }
+        timer = new Stopwatch();
     }
 
     private void Update()
@@ -60,6 +64,7 @@ public class PolePositionManager : NetworkBehaviour
                 {
                     RpcStartGame();
                 }
+                    timer.Start();
             }
         }
 
@@ -120,7 +125,12 @@ public class PolePositionManager : NetworkBehaviour
         }
 
         UI_m.SetTextPosition(myRaceOrder);
-        UI_m.SetLap(m_LocalSetupPlayer.GetLap());
+        
+        if (m_LocalSetupPlayer != null)
+        {
+            UI_m.SetLap(m_LocalSetupPlayer.GetLap());
+            UI_m.SetCurTime(m_LocalSetupPlayer.GetPlayerInfo(), timer.Elapsed);
+        }
 
         //Debug.Log("El orden de carrera es: " + myRaceOrder);
     }
@@ -170,16 +180,25 @@ public class PolePositionManager : NetworkBehaviour
                     case 1:
                         if (dist > 100)
                             return;
+                        else
+                            player.time1 = timer.Elapsed;
                         break;
                         
                     case 2:
                         if (dist > 500)
                             return;
+                        else
+                            player.time2 = timer.Elapsed;
                         break;
                         
                     case 3:
                         if (dist > 1000)
                             return;
+                        else
+                        {
+                            timer.Stop();
+                            player.time3 = timer.Elapsed;
+                        }
                         break;
                     default:
                         return;

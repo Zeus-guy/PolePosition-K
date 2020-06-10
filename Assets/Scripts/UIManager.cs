@@ -24,6 +24,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Text textLaps;
     [SerializeField] private Text textPosition;
     [SerializeField] private Text textCountDown;
+    [SerializeField] private Text curTimeText;
+    [SerializeField] private Text totalTimeText;
 
     private void Awake()
     {
@@ -111,6 +113,28 @@ public class UIManager : MonoBehaviour
 
     public void SetLap(int lap)
     {
+        if (lap < 1) lap = 1;
+        if (lap > 3) lap = 3;
+
         textLaps.text = lap + "/3";
+    }
+
+    public void SetCurTime(PlayerInfo player, TimeSpan curTime)
+    {
+        TimeSpan ts;
+        switch (player.CurrentLap)
+        {
+            case 2:
+                ts = player.time1;
+                curTimeText.text = String.Format("{0:00}:{1:00}.{2:00}", ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
+                break;
+                
+            case 3:
+                ts = player.time2 - player.time1;
+                curTimeText.text = String.Format("{0:00}:{1:00}.{2:00}", ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
+                break;
+            
+        }
+        totalTimeText.text = String.Format("{0:00}:{1:00}.{2:00}", curTime.Minutes, curTime.Seconds, curTime.Milliseconds / 10);
     }
 }

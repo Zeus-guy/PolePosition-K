@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Mirror;
 using UnityEngine;
+using System;
 
 public class PlayerInfo : MonoBehaviour
 {
@@ -20,5 +21,9 @@ public class PlayerInfo : MonoBehaviour
 
     public int CheckPoint { get; set; }
     public bool CanChangeLap { get; set; }
+
+    public TimeSpan time1;
+    public TimeSpan time2;
+    public TimeSpan time3;
 
 }

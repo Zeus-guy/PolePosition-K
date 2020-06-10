@@ -51,6 +51,7 @@ public class PlayerController : NetworkBehaviour
     //private bool canChangeLap = true;
     //[SyncVar (hook = nameof(OnLapChange))] private int curLap = 0;
 
+
     public delegate void OnSpeedChangeDelegate(float newVal);
 
     public event OnSpeedChangeDelegate OnSpeedChangeEvent;

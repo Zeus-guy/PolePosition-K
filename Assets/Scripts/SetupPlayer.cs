@@ -180,4 +180,9 @@ public class SetupPlayer : NetworkBehaviour
     {
         return m_PlayerInfo.CurrentLap;
     }
+
+    public PlayerInfo GetPlayerInfo()
+    {
+        return m_PlayerInfo;
+    }
 }
