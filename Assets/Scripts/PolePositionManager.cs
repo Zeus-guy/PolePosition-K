@@ -12,6 +12,7 @@ public class PolePositionManager : NetworkBehaviour
     public int numPlayers;
     public NetworkManager networkManager;
     public UIManager UI_m;
+    public Transform cameraPosition;
 
     private readonly List<PlayerInfo> m_Players = new List<PlayerInfo>(4);
     private CircuitController m_CircuitController;
@@ -39,7 +40,7 @@ public class PolePositionManager : NetworkBehaviour
 
     private void Update()
     {
-        if (m_Players.Count <= 0)
+        if (m_Players.Count <= 1)
         {
             if(UI_m.GetCountDown()=="")
                 UI_m.SetCountDown("Waiting for another"+"\n"+" player");
@@ -105,18 +106,9 @@ public class PolePositionManager : NetworkBehaviour
 
     public void UpdateRaceProgress()
     {
-        // Update car arc-lengths
-        float[] arcLengths = new float[m_Players.Count];
+        
 
-        for (int i = 0; i < m_Players.Count; ++i)
-        {
-            arcLengths[i] = ComputeCarArcLength(i);
-            changeLap(m_Players[i], arcLengths[i]);
-        }
-
-        //m_Players.Sort(new PlayerInfoComparer(arcLengths));
-        PlayerInfo[] arr = m_Players.ToArray();
-        Array.Sort(arr, new PlayerInfoComparer(arcLengths));
+        PlayerInfo[] arr = SortPlayers();
 
         string myRaceOrder = "";
         foreach (var _player in arr)
@@ -198,6 +190,7 @@ public class PolePositionManager : NetworkBehaviour
                         {
                             timer.Stop();
                             player.time3 = timer.Elapsed;
+                            FinishGame();
                         }
                         break;
                     default:
@@ -207,5 +200,100 @@ public class PolePositionManager : NetworkBehaviour
                 player.CanChangeLap = false;
             }
         }
+    }
+    private void FinishGame()
+    {
+        m_LocalSetupPlayer.EndGame();
+
+        UI_m.FadeOut();
+        
+    }
+
+    public void PostFadeOut()
+    {
+        UI_m.SetEndingUI();
+
+        string names = "Players\n\n";
+        string lap1 = "Lap 1\n\n";
+        string lap2 = "Lap 2\n\n";
+        string lap3 = "Lap 3\n\n";
+        string total = "Total\n\n";
+        string t1, t2, t3, tt;
+        TimeSpan ts;
+        TimeSpan zeroTs = new TimeSpan(0);
+
+        PlayerInfo[] playerArray = SortPlayers();
+
+        foreach (PlayerInfo p in playerArray)
+        {
+            ts = p.time1;
+            if (p.time1 > zeroTs)
+                t1 = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
+            else
+                t1 = "--:--.---";
+
+            ts = p.time2 - p.time1;
+            if (p.time1 > zeroTs && p.time2 > zeroTs)
+                t2 = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
+            else
+                t2 = "--:--.---";
+            
+            ts = p.time3 - p.time2;
+            if (p.time2 > zeroTs && p.time3 > zeroTs)
+                t3 = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
+            else
+                t3 = "--:--.---";
+            
+            ts = timer.Elapsed;
+            if (timer.Elapsed > zeroTs)
+                tt = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
+            else
+                tt = "--:--.---";
+
+            names = names + p.Name + "\n\n";
+            lap1 = lap1 + t1 + "\n\n";
+            lap2 = lap2 + t2 + "\n\n";
+            lap3 = lap3 + t3 + "\n\n";
+            total = total + tt + "\n\n";
+        }
+
+        if (isServer)
+        {
+            RpcChangeScores(names, lap1, lap2, lap3, total);
+            NetworkManager.singleton.StopServer();
+        }
+    }
+    [ClientRpc]
+    void RpcChangeScores(string names, string lap1, string lap2, string lap3, string total)
+    {
+        UI_m.SetEndingUI();
+        UI_m.SetScores(names, lap1, lap2, lap3, total);
+        if (isClient)
+        {
+            NetworkManager.singleton.StopClient();
+        }
+        //Mover la cámara del jugador a donde toca
+        cameraPosition.position = new Vector3(0,2.82f,-10);
+        cameraPosition.localEulerAngles = Vector3.zero;
+        
+        //FadeIn
+        UI_m.FadeIn();
+    }
+
+    private PlayerInfo[] SortPlayers()
+    {
+        // Update car arc-lengths
+        float[] arcLengths = new float[m_Players.Count];
+
+        for (int i = 0; i < m_Players.Count; ++i)
+        {
+            arcLengths[i] = ComputeCarArcLength(i);
+            changeLap(m_Players[i], arcLengths[i]);
+        }
+
+        //m_Players.Sort(new PlayerInfoComparer(arcLengths));
+        PlayerInfo[] arr = m_Players.ToArray();
+        Array.Sort(arr, new PlayerInfoComparer(arcLengths));
+        return arr;
     }
 }

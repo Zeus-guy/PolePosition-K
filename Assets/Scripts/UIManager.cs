@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Mirror;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class UIManager : MonoBehaviour
 {
@@ -26,6 +27,16 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Text textCountDown;
     [SerializeField] private Text curTimeText;
     [SerializeField] private Text totalTimeText;
+    [SerializeField] private Image fade;
+    
+    [SerializeField] private GameObject endingHUD;
+    [SerializeField] private Text endNames;
+    [SerializeField] private Text endLap1;
+    [SerializeField] private Text endLap2;
+    [SerializeField] private Text endLap3;
+    [SerializeField] private Text endTotal;
+    [SerializeField] private GameObject nameField;
+    [SerializeField] private GameObject colorField;
 
     private void Awake()
     {
@@ -45,10 +56,13 @@ public class UIManager : MonoBehaviour
         textSpeed.text = "Speed " + speed + " Km/h";
     }
 
-    private void ActivateMainMenu()
+    public void ActivateMainMenu()
     {
         mainMenu.SetActive(true);
         inGameHUD.SetActive(false);
+        endingHUD.SetActive(false);
+        nameField.SetActive(true);
+        colorField.SetActive(true);
     }
 
     private void ActivateInGameHUD()
@@ -126,15 +140,45 @@ public class UIManager : MonoBehaviour
         {
             case 2:
                 ts = player.time1;
-                curTimeText.text = String.Format("{0:00}:{1:00}.{2:00}", ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
+                curTimeText.text = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
                 break;
                 
             case 3:
                 ts = player.time2 - player.time1;
-                curTimeText.text = String.Format("{0:00}:{1:00}.{2:00}", ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
+                curTimeText.text = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
                 break;
             
         }
-        totalTimeText.text = String.Format("{0:00}:{1:00}.{2:00}", curTime.Minutes, curTime.Seconds, curTime.Milliseconds / 10);
+        totalTimeText.text = String.Format("{0:00}:{1:00}.{2:000}", curTime.Minutes, curTime.Seconds, curTime.Milliseconds / 10);
+    }
+
+    public void FadeOut()
+    {
+        fade.gameObject.SetActive(true);
+    }
+
+    public void SetEndingUI()
+    {
+        mainMenu.SetActive(false);
+        inGameHUD.SetActive(false);
+        endingHUD.SetActive(true);
+    }
+
+    public void SetScores(string names, string lap1, string lap2, string lap3, string total)
+    {
+        endNames.text = names;
+        endLap1.text = lap1;
+        endLap2.text = lap2;
+        endLap3.text = lap3;
+        endTotal.text = total;
+    }
+    public void FadeIn()
+    {
+        fade.GetComponent<Animator>().SetTrigger("FadeIn");
+    }
+
+    public void ResetGame()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }

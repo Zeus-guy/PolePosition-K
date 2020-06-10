@@ -159,6 +159,11 @@ public class SetupPlayer : NetworkBehaviour
     {
         m_PlayerController.enabled = true;
     }
+
+    public void EndGame()
+    {
+        m_PlayerController.enabled = false;
+    }
     /*void Update()
     {
         if (isLocalPlayer)
