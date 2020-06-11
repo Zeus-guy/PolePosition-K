@@ -6,6 +6,7 @@ using Mirror;
 using UnityEngine;
 using System.Threading;
 using System.Diagnostics;
+using UnityEngine.UI;
 
 public class PolePositionManager : NetworkBehaviour
 {
@@ -23,8 +24,10 @@ public class PolePositionManager : NetworkBehaviour
 
     private Stopwatch timer;
 
-    [SyncVar] private int Player_Count = 1;
+    [SyncVar] public int Player_Count = 1;
     public Transform[] checkPoints;
+    private int oldPlayersLeft = -1;
+    public Dropdown Drop_Players;
     
 
     private void Awake()
@@ -54,12 +57,16 @@ public class PolePositionManager : NetworkBehaviour
         {
             if (m_Players.Count <= Player_Count-1)
             {
-                if(UI_m.GetCountDown()=="")
-                    UI_m.SetCountDown("Waiting for another"+"\n"+" player");
-                return;
+                int playersLeft = Player_Count-m_Players.Count;
+                if(UI_m.GetCountDown()=="" || playersLeft != oldPlayersLeft)
+                {
+                    oldPlayersLeft = playersLeft;
+                    UI_m.SetCountDown("Waiting for " + playersLeft + "\n"+" player" + ((playersLeft == 1)?"":"s"));
+                }
+                //return;
             }
 
-            if (countdown > -1.5)
+            else if (countdown > -1.5)
             {
                 countdown -= Time.deltaTime;
                 if (countdown > 0)
@@ -115,7 +122,7 @@ public class PolePositionManager : NetworkBehaviour
 
         public override int Compare(PlayerInfo x, PlayerInfo y)
         {
-            if (this.m_ArcLengths[x.ID] < (m_ArcLengths[y.ID]))
+            if (this.m_ArcLengths[x.sortID] < (m_ArcLengths[y.sortID]))
                 return 1;
             else return -1;
         }
@@ -313,11 +320,17 @@ public class PolePositionManager : NetworkBehaviour
             changeLap(m_Players[i], arcLengths[i]);
         }
 
+        int newId = 0;
         for (int i = 0; i < arcLengths.Length; i++)
         {
             if (arcLengths[i] == -999999)
             {
                 this.m_Players.RemoveAt(i);
+            }
+            else
+            {
+                m_Players[i].sortID = newId;
+                newId++;
             }
         }
 
@@ -325,5 +338,16 @@ public class PolePositionManager : NetworkBehaviour
         PlayerInfo[] arr = m_Players.ToArray();
         Array.Sort(arr, new PlayerInfoComparer(arcLengths));
         return arr;
+    }
+
+    public override void OnStartServer()
+    {
+        
+        Player_Count = Drop_Players.value+2;
+        Drop_Players.gameObject.SetActive(false);
+    }
+    public override void OnStartClient()
+    {
+        Drop_Players.gameObject.SetActive(false);
     }
 }
