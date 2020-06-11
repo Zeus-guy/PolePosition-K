@@ -18,10 +18,12 @@ public class PolePositionManager : NetworkBehaviour
     private CircuitController m_CircuitController;
     private GameObject[] m_DebuggingSpheres;
     private float countdown = 3;
-    public bool gameStarted;
+    public bool gameStarted, timerStarted;
     private SetupPlayer m_LocalSetupPlayer;
 
     private Stopwatch timer;
+
+    [SyncVar] private int Player_Count = 2;
     
 
     private void Awake()
@@ -40,34 +42,48 @@ public class PolePositionManager : NetworkBehaviour
 
     private void Update()
     {
-        if (m_Players.Count <= 1)
+        
+        if (countdown < 3 && m_Players.Count <= 1 && Player_Count > 1)
         {
-            if(UI_m.GetCountDown()=="")
-                UI_m.SetCountDown("Waiting for another"+"\n"+" player");
+            FinishGame();
             return;
         }
 
         if (!gameStarted)
         {
+            if (m_Players.Count <= Player_Count-1)
+            {
+                if(UI_m.GetCountDown()=="")
+                    UI_m.SetCountDown("Waiting for another"+"\n"+" player");
+                return;
+            }
+
             if (countdown > -1.5)
             {
                 countdown -= Time.deltaTime;
                 if (countdown > 0)
                     UI_m.EditCountDown(countdown);
                 else if (countdown <= 0)
+                {
                     UI_m.SetCountDown("GO!");
+                    if (!timerStarted)
+                    {
+                        if (isServer)
+                        {
+                            RpcStartGame();
+                        }
+                        timer.Start();
+                        timerStarted = true;
+                    }
+                }
             }
             else
             {
                 UI_m.SetCountDown("");
                 gameStarted = true;
-                if (isServer)
-                {
-                    RpcStartGame();
-                }
-                    timer.Start();
             }
         }
+        
 
         UpdateRaceProgress();
     }
@@ -132,6 +148,10 @@ public class PolePositionManager : NetworkBehaviour
         // Compute the projection of the car position to the closest circuit 
         // path segment and accumulate the arc-length along of the car along
         // the circuit.
+        if (this.m_Players[ID] == null)
+        {
+            return -999999;
+        }
         Vector3 carPos = this.m_Players[ID].transform.position;
         //Debug.Log(ID + ", " + this.m_Players[ID].Name);
 
@@ -289,6 +309,14 @@ public class PolePositionManager : NetworkBehaviour
         {
             arcLengths[i] = ComputeCarArcLength(i);
             changeLap(m_Players[i], arcLengths[i]);
+        }
+
+        for (int i = 0; i < arcLengths.Length; i++)
+        {
+            if (arcLengths[i] == -999999)
+            {
+                this.m_Players.RemoveAt(i);
+            }
         }
 
         //m_Players.Sort(new PlayerInfoComparer(arcLengths));

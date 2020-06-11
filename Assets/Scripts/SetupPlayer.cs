@@ -87,14 +87,14 @@ public class SetupPlayer : NetworkBehaviour
     [Command]
     private void CmdChangeName(string name)
     {
-        GetComponent<NetworkIdentity>().AssignClientAuthority(this.GetComponent<NetworkIdentity>().connectionToClient);
+        //GetComponent<NetworkIdentity>().AssignClientAuthority(this.GetComponent<NetworkIdentity>().connectionToClient);
         m_Name = name;
     }
     //Manda el color al servidor
     [Command]
     private void CmdChangeColour(int color)
     {
-        GetComponent<NetworkIdentity>().AssignClientAuthority(this.GetComponent<NetworkIdentity>().connectionToClient);
+        //GetComponent<NetworkIdentity>().AssignClientAuthority(this.GetComponent<NetworkIdentity>().connectionToClient);
         m_Colour = color;
     }
 
