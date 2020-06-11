@@ -190,4 +190,9 @@ public class SetupPlayer : NetworkBehaviour
     {
         return m_PlayerInfo;
     }
+
+    public void SetCheckPoints(Transform[] checkpoints)
+    {
+        m_PlayerController.checkPoints = (Transform[])checkpoints.Clone();
+    }
 }

@@ -23,7 +23,8 @@ public class PolePositionManager : NetworkBehaviour
 
     private Stopwatch timer;
 
-    [SyncVar] private int Player_Count = 2;
+    [SyncVar] private int Player_Count = 1;
+    public Transform[] checkPoints;
     
 
     private void Awake()
@@ -138,6 +139,7 @@ public class PolePositionManager : NetworkBehaviour
         {
             UI_m.SetLap(m_LocalSetupPlayer.GetLap());
             UI_m.SetCurTime(m_LocalSetupPlayer.GetPlayerInfo(), timer.Elapsed);
+            m_LocalSetupPlayer.SetCheckPoints(checkPoints);
         }
 
         //Debug.Log("El orden de carrera es: " + myRaceOrder);

@@ -20,6 +20,7 @@ public class PlayerInfo : MonoBehaviour
     }
 
     public int CheckPoint { get; set; }
+    public int LastCheckPoint { get; set; }
     public bool CanChangeLap { get; set; }
 
     public TimeSpan time1;

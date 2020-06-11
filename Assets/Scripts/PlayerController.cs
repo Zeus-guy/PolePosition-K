@@ -31,9 +31,10 @@ public class PlayerController : NetworkBehaviour
 
     private Rigidbody m_Rigidbody;
     private float m_SteerHelper = 0.8f;
-
-
     private float m_CurrentSpeed = 0;
+    public const float maxDownTime = 3;
+    public float currentDownTime = maxDownTime;
+    public Transform[] checkPoints;
 
     private float Speed
     {
@@ -46,10 +47,6 @@ public class PlayerController : NetworkBehaviour
                 OnSpeedChangeEvent(m_CurrentSpeed);
         }
     }
-
-    /*[SyncVar]*/ //private int checkPoint = 0;
-    //private bool canChangeLap = true;
-    //[SyncVar (hook = nameof(OnLapChange))] private int curLap = 0;
 
 
     public delegate void OnSpeedChangeDelegate(float newVal);
@@ -72,6 +69,14 @@ public class PlayerController : NetworkBehaviour
         InputSteering = Input.GetAxis(("Horizontal"));
         InputBrake = Input.GetAxis("Jump");
         Speed = m_Rigidbody.velocity.magnitude;
+
+        if (currentDownTime <= 0)
+        {
+            this.gameObject.transform.position = checkPoints[m_PlayerInfo.LastCheckPoint].position;
+            this.gameObject.transform.eulerAngles = checkPoints[m_PlayerInfo.LastCheckPoint].eulerAngles;
+            currentDownTime = maxDownTime;
+        }
+
     }
 
     public void FixedUpdate()
@@ -206,8 +211,12 @@ public class PlayerController : NetworkBehaviour
             foreach (var wh in wheelHit)
             {
                 if (wh.normal == Vector3.zero)
+                {
+                    currentDownTime -= Time.fixedDeltaTime;
                     return; // wheels arent on the ground so dont realign the rigidbody velocity
+                }
             }
+                    currentDownTime = maxDownTime;
         }
 
 // this if is needed to avoid gimbal lock problems that will make the car suddenly shift direction
@@ -231,13 +240,9 @@ public class PlayerController : NetworkBehaviour
         if (int.Parse(col.name) == nextCheckPoint)
         {
             m_PlayerInfo.CheckPoint = nextCheckPoint;
+            m_PlayerInfo.LastCheckPoint = nextCheckPoint;
             if (m_PlayerInfo.CheckPoint == 1)
                 m_PlayerInfo.CanChangeLap = true;
-            /*if (checkPoint == 0)
-            {
-                //curLap++;
-                m_PlayerInfo.CurrentLap++;// = curLap;
-            }*/
         }
         else if (int.Parse(col.name) == previousCheckPoint)
         {
@@ -245,10 +250,4 @@ public class PlayerController : NetworkBehaviour
                 m_PlayerInfo.CheckPoint = previousCheckPoint;
         }
     }
-
-    /*void OnLapChange(int oldLap, int newLap)
-    {
-        m_PlayerInfo.CurrentLap = newLap;
-    }*/
-    
 }
