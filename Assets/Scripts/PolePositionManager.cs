@@ -387,6 +387,8 @@ public class PolePositionManager : NetworkBehaviour
     }
     public override void OnStartClient()
     {
+        UI_m.ToggleWaitingHUD(false);
         Drop_Players.gameObject.SetActive(false);
     }
+
 }

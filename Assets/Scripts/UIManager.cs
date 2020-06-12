@@ -38,7 +38,11 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject nameField;
     [SerializeField] private GameObject colorField;
     [SerializeField] private Dropdown maxPlayers;
-
+    [SerializeField] private GameObject waitingBox;
+    [SerializeField] private Text waitingText;
+    [SerializeField] private GameObject waitingReset;
+    private float timeout = -1;
+    private int dots = 0;
 
     private void Awake()
     {
@@ -51,6 +55,24 @@ public class UIManager : MonoBehaviour
         buttonClient.onClick.AddListener(() => StartClient());
         buttonServer.onClick.AddListener(() => StartServer());
         ActivateMainMenu();
+    }
+
+    private void Update()
+    {
+        if (timeout != -1)
+        {
+            timeout += Time.deltaTime;
+            if (Mathf.FloorToInt(timeout) == dots)
+            {
+                UpdateDots();
+                dots++;
+            }
+            if (dots == 6)
+            {
+                timeout = -1;
+                waitingReset.SetActive(true);
+            }
+        }
     }
 
     public void UpdateSpeed(int speed)
@@ -73,6 +95,12 @@ public class UIManager : MonoBehaviour
         inGameHUD.SetActive(true);
     }
 
+    public void ToggleWaitingHUD(bool state)
+    {
+        waitingBox.SetActive(state);
+        if (!state)
+            timeout = -1;
+    }
     private void StartHost()
     {
         m_NetworkManager.maxConnections = maxPlayers.value+2;
@@ -82,6 +110,8 @@ public class UIManager : MonoBehaviour
 
     private void StartClient()
     {
+        ToggleWaitingHUD(true);
+        timeout = 0;
         m_NetworkManager.StartClient();
         m_NetworkManager.networkAddress = inputFieldIP.text;
         ActivateInGameHUD();
@@ -191,6 +221,31 @@ public class UIManager : MonoBehaviour
 
     public void ResetGame()
     {
+        Destroy(m_NetworkManager.gameObject);
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    private void UpdateDots()
+    {
+        string dotString = "";
+        for (int i = 0; i < 6; i++)
+        {
+            if (i <= dots)
+                dotString += ".";
+            /*else
+                dotString += " ";*/
+        }
+        dotString = "Connecting to server\nPlease Wait\n" + dotString;
+        if (dots == 5)
+        {
+            dotString += "\nCouldn't connect to server";
+        }
+        waitingText.text = dotString;
+    }
+    public void ServerCrashMessage()
+    {
+        ToggleWaitingHUD(true);
+        waitingReset.SetActive(true);
+        waitingText.text = "Lost connection";
     }
 }

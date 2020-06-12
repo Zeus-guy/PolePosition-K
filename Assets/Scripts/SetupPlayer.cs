@@ -27,6 +27,7 @@ public class SetupPlayer : NetworkBehaviour
     private PlayerInfo m_PlayerInfo;
     private PolePositionManager m_PolePositionManager;
     private InputField _name;
+    private bool gameEnded;
 
     #region Start & Stop Callbacks
 
@@ -163,6 +164,7 @@ public class SetupPlayer : NetworkBehaviour
     public void EndGame()
     {
         m_PlayerController.enabled = false;
+        gameEnded = true;
     }
     /*void Update()
     {
@@ -170,6 +172,14 @@ public class SetupPlayer : NetworkBehaviour
             if (m_PolePositionManager.gameStarted)
                 m_PlayerController.enabled = true;
     }*/
+    void OnDestroy()
+    {
+        if (!gameEnded && isLocalPlayer)
+        {
+            m_PlayerController.enabled = false;
+            m_UIManager.ServerCrashMessage();
+        }
+    }
 
     void OnSpeedChangeEventHandler(float speed)
     {
