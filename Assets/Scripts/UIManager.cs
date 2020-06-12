@@ -37,6 +37,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Text endTotal;
     [SerializeField] private GameObject nameField;
     [SerializeField] private GameObject colorField;
+    [SerializeField] private Dropdown maxPlayers;
+
 
     private void Awake()
     {
@@ -73,6 +75,7 @@ public class UIManager : MonoBehaviour
 
     private void StartHost()
     {
+        m_NetworkManager.maxConnections = maxPlayers.value+2;
         m_NetworkManager.StartHost();
         ActivateInGameHUD();
     }
