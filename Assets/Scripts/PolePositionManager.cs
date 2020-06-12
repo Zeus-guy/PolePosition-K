@@ -183,6 +183,45 @@ public class PolePositionManager : NetworkBehaviour
                        (m_Players[ID].CurrentLap - 1);
         }
 //Debug.Log("i = " + ID + ", minArcL = " + minArcL);
+
+        bool isBehind = false;
+        if (this.m_Players[ID].CheckPoint == 1 || (this.m_Players[ID].CheckPoint != 1 && !this.m_Players[ID].CanChangeLap))
+        {
+            switch (this.m_Players[ID].CurrentLap)
+            {
+                case 0:
+                    if (minArcL > -200)
+                        isBehind = true;
+                    break;
+                    
+                case 1:
+                    if (minArcL > 100)
+                        isBehind = true;
+                    break;
+                    
+                case 2:
+                    if (minArcL > 500)
+                        isBehind = true;
+                    break;
+                    
+                case 3:
+                    if (minArcL > 1000)
+                        isBehind = true;
+                    break;
+            }
+        }
+        if (isBehind)
+        {
+            if (this.m_Players[ID].CurrentLap-1 == 0)
+            {
+                minArcL -= m_CircuitController.CircuitLength;
+            }
+            else
+            {
+                minArcL += m_CircuitController.CircuitLength * (m_Players[ID].CurrentLap - 2);
+            
+            }        
+        }
         return minArcL;
     }
     public void changeLap(PlayerInfo player, float dist)
