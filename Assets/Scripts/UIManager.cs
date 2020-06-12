@@ -120,6 +120,15 @@ public class UIManager : MonoBehaviour
         textCountDown.fontSize = (int)(100*(ratio+0.5f));
     }
 
+    public void SetBackwardsText(float t)
+    {
+        float cd = t/1;
+        textCountDown.text = "TURN AROUND";
+        Color color = textCountDown.color;
+        color.a = cd;
+        textCountDown.color = color;
+    }
+
     public void SetTextPosition(string text)
     {
         textPosition.text = text;

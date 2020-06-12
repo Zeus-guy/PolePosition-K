@@ -72,6 +72,7 @@ public class PlayerController : NetworkBehaviour
 
         if (currentDownTime <= 0)
         {
+            m_Rigidbody.velocity = Vector3.zero;
             this.gameObject.transform.position = checkPoints[m_PlayerInfo.LastCheckPoint].position;
             this.gameObject.transform.eulerAngles = checkPoints[m_PlayerInfo.LastCheckPoint].eulerAngles;
             currentDownTime = maxDownTime;
@@ -246,6 +247,9 @@ public class PlayerController : NetworkBehaviour
         }
         else if (int.Parse(col.name) == previousCheckPoint)
         {
+            m_Rigidbody.velocity = Vector3.zero;
+            this.gameObject.transform.position = checkPoints[m_PlayerInfo.LastCheckPoint].position;
+            this.gameObject.transform.eulerAngles = checkPoints[m_PlayerInfo.LastCheckPoint].eulerAngles;
             if (m_PlayerInfo.CheckPoint != 1)
                 m_PlayerInfo.CheckPoint = previousCheckPoint;
         }
