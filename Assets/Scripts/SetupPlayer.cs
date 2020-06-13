@@ -23,7 +23,7 @@ public class SetupPlayer : NetworkBehaviour
 
     private UIManager m_UIManager;
     private NetworkManager m_NetworkManager;
-    private PlayerController m_PlayerController;
+    public PlayerController m_PlayerController { get; set; }
     private PlayerInfo m_PlayerInfo;
     private PolePositionManager m_PolePositionManager;
     private InputField _name;
@@ -49,33 +49,12 @@ public class SetupPlayer : NetworkBehaviour
     public override void OnStartClient()
     {
         base.OnStartClient();
-
-        if (isLocalPlayer)
-            m_PolePositionManager.SetLocalPlayer(this);
-
         m_PlayerInfo.ID = m_ID;
+        m_PlayerInfo.controller = m_PlayerController;
 
         //Asignación del nombre del jugador
-        if (isLocalPlayer)
-        {
-            _name = GameObject.Find("nombre").GetComponent<InputField>();
-            m_Name = _name.text;
-            if (m_Name == "")
-                m_Name = "Player" + m_ID;
-            _name.gameObject.SetActive(false);
-            CmdChangeName(m_Name);
-        }
         SetName("", m_Name);
 
-        if (isLocalPlayer)
-        {
-            Dropdown Drop_color = GameObject.Find("Colour").GetComponent<Dropdown>();
-            m_Colour = Drop_color.value;
-            if (m_Colour == 0)
-                m_Colour = 1;
-            Drop_color.gameObject.SetActive(false);
-            CmdChangeColour(m_Colour);
-        }
         SetColour(0, m_Colour);
         
         m_PlayerInfo.CurrentLap = 0;
@@ -131,6 +110,31 @@ public class SetupPlayer : NetworkBehaviour
     /// </summary>
     public override void OnStartLocalPlayer()
     {
+        if (isLocalPlayer)
+            m_PolePositionManager.SetLocalPlayer(this);
+        m_PlayerInfo.ID = m_ID;
+
+        if (isLocalPlayer)
+        {
+            _name = GameObject.Find("nombre").GetComponent<InputField>();
+            m_Name = _name.text;
+            if (m_Name == "")
+                m_Name = "Player" + m_ID;
+            _name.gameObject.SetActive(false);
+            CmdChangeName(m_Name);
+        }
+        SetName("", m_Name);
+
+        if (isLocalPlayer)
+        {
+            Dropdown Drop_color = GameObject.Find("Colour").GetComponent<Dropdown>();
+            m_Colour = Drop_color.value;
+            if (m_Colour == 0)
+                m_Colour = 1;
+            Drop_color.gameObject.SetActive(false);
+            CmdChangeColour(m_Colour);
+        }
+        SetColour(0, m_Colour);
     }
 
     #endregion
@@ -166,12 +170,7 @@ public class SetupPlayer : NetworkBehaviour
         m_PlayerController.enabled = false;
         gameEnded = true;
     }
-    /*void Update()
-    {
-        if (isLocalPlayer)
-            if (m_PolePositionManager.gameStarted)
-                m_PlayerController.enabled = true;
-    }*/
+    
     void OnDestroy()
     {
         if (!gameEnded && isLocalPlayer)
@@ -188,7 +187,11 @@ public class SetupPlayer : NetworkBehaviour
 
     void ConfigureCamera()
     {
-        if (Camera.main != null) Camera.main.gameObject.GetComponent<CameraController>().m_Focus = this.gameObject;
+        if (Camera.main != null) 
+        {
+            Camera.main.gameObject.GetComponent<CameraController>().m_Focus = this.gameObject;
+            Camera.main.gameObject.GetComponent<CameraController>().playerInfo = m_PlayerInfo;
+        }
     }
 
     public int GetLap()

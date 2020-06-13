@@ -28,4 +28,7 @@ public class PlayerInfo : MonoBehaviour
     public TimeSpan time2;
     public TimeSpan time3;
 
+    public int segIdx = 0;
+
+    public PlayerController controller;
 }

@@ -5,6 +5,7 @@ using Mirror;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using System.Threading.Tasks;
 
 public class UIManager : MonoBehaviour
 {
@@ -12,6 +13,7 @@ public class UIManager : MonoBehaviour
 
     private NetworkManager m_NetworkManager;
 
+    #region Editor references
     [Header("Main Menu")] [SerializeField] private GameObject mainMenu;
     [SerializeField] private Button buttonHost;
     [SerializeField] private Button buttonClient;
@@ -41,7 +43,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject waitingBox;
     [SerializeField] private Text waitingText;
     [SerializeField] private GameObject waitingReset;
-    private float timeout = -1;
+    #endregion
+    //private float timeout = -1;
     private int dots = 0;
 
     private void Awake()
@@ -59,7 +62,7 @@ public class UIManager : MonoBehaviour
 
     private void Update()
     {
-        if (timeout != -1)
+        /*if (timeout != -1)
         {
             timeout += Time.deltaTime;
             if (Mathf.FloorToInt(timeout) == dots)
@@ -72,7 +75,26 @@ public class UIManager : MonoBehaviour
                 timeout = -1;
                 waitingReset.SetActive(true);
             }
+        }*/
+    }
+
+    private void UpdateDotsTask()
+    {
+        Debug.Log("EY BUENAS A TODOS AQUI WILLYTASK COOOMENTANDO");
+        for (int i = 0; i < 6; i++)
+        {
+            Debug.Log("ola buenas");
+            dots = i;
+            UpdateDots();
+            Task.Delay(1000).Wait();
+            Debug.Log("enga staluego");
         }
+        Debug.Log("Agarrame esta");
+        if (waitingBox.activeSelf)
+            waitingReset.SetActive(true);
+        else
+            Debug.Log("POS NO PUDE");
+        Debug.Log("FIN");
     }
 
     public void UpdateSpeed(int speed)
@@ -98,8 +120,8 @@ public class UIManager : MonoBehaviour
     public void ToggleWaitingHUD(bool state)
     {
         waitingBox.SetActive(state);
-        if (!state)
-            timeout = -1;
+        /*if (!state)
+            timeout = -1;*/
     }
     private void StartHost()
     {
@@ -111,10 +133,13 @@ public class UIManager : MonoBehaviour
     private void StartClient()
     {
         ToggleWaitingHUD(true);
-        timeout = 0;
         m_NetworkManager.StartClient();
         m_NetworkManager.networkAddress = inputFieldIP.text;
         ActivateInGameHUD();
+        //timeout = 0;
+        //Task.Run(()=>UpdateDotsTask());
+        new Task(()=>UpdateDotsTask()).Start();
+        //
     }
 
     private void StartServer()
@@ -225,7 +250,7 @@ public class UIManager : MonoBehaviour
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
-    private void UpdateDots()
+    private void UpdateDots(/*int dots*/)
     {
         string dotString = "";
         for (int i = 0; i < 6; i++)
@@ -236,7 +261,7 @@ public class UIManager : MonoBehaviour
                 dotString += " ";*/
         }
         dotString = "Connecting to server\nPlease Wait\n" + dotString;
-        if (dots == 5)
+        if (dots >= 5)
         {
             dotString += "\nCouldn't connect to server";
         }

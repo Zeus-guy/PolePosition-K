@@ -35,6 +35,7 @@ public class PlayerController : NetworkBehaviour
     public const float maxDownTime = 3;
     public float currentDownTime = maxDownTime;
     public Transform[] checkPoints;
+    [SyncVar] public float arcLength;
 
     private float Speed
     {
@@ -211,7 +212,8 @@ public class PlayerController : NetworkBehaviour
             axleInfo.rightWheel.GetGroundHit(out wheelHit[1]);
             foreach (var wh in wheelHit)
             {
-                if (wh.normal == Vector3.zero)
+                Debug.Log(wh.collider);
+                if (wh.normal == Vector3.zero || wh.collider == null || (wh.collider != null && wh.collider.name == "grass"))
                 {
                     currentDownTime -= Time.fixedDeltaTime;
                     return; // wheels arent on the ground so dont realign the rigidbody velocity
@@ -253,5 +255,11 @@ public class PlayerController : NetworkBehaviour
             if (m_PlayerInfo.CheckPoint != 1)
                 m_PlayerInfo.CheckPoint = previousCheckPoint;
         }
+    }
+
+    [Command]
+    public void CmdUpdateArcLength(float newArcL)
+    {
+        arcLength = newArcL;
     }
 }

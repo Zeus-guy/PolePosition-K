@@ -152,14 +152,15 @@ public class PolePositionManager : NetworkBehaviour
         //Debug.Log("El orden de carrera es: " + myRaceOrder);
     }
 
-    float ComputeCarArcLength(int ID)
+    void ComputeCarArcLength(int ID)
     {
         // Compute the projection of the car position to the closest circuit 
         // path segment and accumulate the arc-length along of the car along
         // the circuit.
         if (this.m_Players[ID] == null)
         {
-            return -999999;
+            m_LocalSetupPlayer.m_PlayerController.CmdUpdateArcLength(-999999);
+            return;
         }
         Vector3 carPos = this.m_Players[ID].transform.position;
         //Debug.Log(ID + ", " + this.m_Players[ID].Name);
@@ -170,6 +171,8 @@ public class PolePositionManager : NetworkBehaviour
 
         float minArcL =
             this.m_CircuitController.ComputeClosestPointArcLength(carPos, out segIdx, out carProj, out carDist);
+
+        m_Players[ID].segIdx = segIdx;
 
         this.m_DebuggingSpheres[ID].transform.position = carProj;
 
@@ -222,10 +225,15 @@ public class PolePositionManager : NetworkBehaviour
             
             }        
         }
-        return minArcL;
+
+
+        //Command para que el server asigne la SyncVar minArcL
+        m_LocalSetupPlayer.m_PlayerController.CmdUpdateArcLength(minArcL);
+
     }
     public void changeLap(PlayerInfo player, float dist)
     {
+        print(player + ", " + dist);
         if (player.CanChangeLap)
         {
             if (player.CheckPoint == 0)
@@ -355,7 +363,7 @@ public class PolePositionManager : NetworkBehaviour
 
         for (int i = 0; i < m_Players.Count; ++i)
         {
-            arcLengths[i] = ComputeCarArcLength(i);
+            arcLengths[i] = m_Players[i].controller.arcLength;//ComputeCarArcLength(i);
             changeLap(m_Players[i], arcLengths[i]);
         }
 
@@ -372,6 +380,8 @@ public class PolePositionManager : NetworkBehaviour
                 newId++;
             }
         }
+        if (isClient)
+            ComputeCarArcLength(m_LocalSetupPlayer.GetPlayerInfo().sortID);
 
         //m_Players.Sort(new PlayerInfoComparer(arcLengths));
         PlayerInfo[] arr = m_Players.ToArray();
