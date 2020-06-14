@@ -18,8 +18,10 @@ public class PolePositionManager : NetworkBehaviour
     private readonly List<PlayerInfo> m_Players = new List<PlayerInfo>(4);
     private CircuitController m_CircuitController;
     private GameObject[] m_DebuggingSpheres;
-    private float countdown = 3;
+    private const float MAXCOUNTDOWN = 3;
+    private float countdown = MAXCOUNTDOWN;
     public bool gameStarted, timerStarted;
+    [SyncVar] public bool countdownStarted;
     private SetupPlayer m_LocalSetupPlayer;
 
     private Stopwatch timer;
@@ -46,8 +48,7 @@ public class PolePositionManager : NetworkBehaviour
 
     private void Update()
     {
-        
-        if (countdown < 3 && m_Players.Count <= 1 && Player_Count > 1)
+        if (countdown < MAXCOUNTDOWN && m_Players.Count <= 1 && Player_Count > 1)
         {
             FinishGame();
             return;
@@ -55,7 +56,7 @@ public class PolePositionManager : NetworkBehaviour
 
         if (!gameStarted)
         {
-            if (m_Players.Count <= Player_Count-1)
+            if (m_Players.Count <= Player_Count-1 && countdown >= MAXCOUNTDOWN)
             {
                 int playersLeft = Player_Count-m_Players.Count;
                 if(UI_m.GetCountDown()=="" || playersLeft != oldPlayersLeft)
@@ -80,6 +81,7 @@ public class PolePositionManager : NetworkBehaviour
                         {
                             RpcStartGame();
                             timer.Start();
+                            countdownStarted = true;
                         }
                         timerStarted = true;
                     }

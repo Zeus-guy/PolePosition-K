@@ -154,7 +154,11 @@ public class SetupPlayer : NetworkBehaviour
         if (isLocalPlayer)
         {
             //m_PolePositionManager.barrier.SignalAndWait();
-            //m_PlayerController.enabled = true;
+            if (m_PolePositionManager.countdownStarted)
+                {
+                    m_PlayerController.enabled = true;
+                    m_PolePositionManager.gameStarted = true;
+                }
             m_PlayerController.OnSpeedChangeEvent += OnSpeedChangeEventHandler;
             ConfigureCamera();
         }
