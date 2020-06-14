@@ -79,8 +79,8 @@ public class PolePositionManager : NetworkBehaviour
                         if (isServer)
                         {
                             RpcStartGame();
+                            timer.Start();
                         }
-                        timer.Start();
                         timerStarted = true;
                     }
                 }
@@ -100,6 +100,7 @@ public class PolePositionManager : NetworkBehaviour
     void RpcStartGame()
     {
         m_LocalSetupPlayer.StartGame();
+        timer.Start();
     }
 
     public void AddPlayer(PlayerInfo player)
@@ -161,7 +162,7 @@ public class PolePositionManager : NetworkBehaviour
         // the circuit.
         if (this.m_Players[ID] == null)
         {
-            m_LocalSetupPlayer.m_PlayerController.CmdUpdateArcLength(-999999);
+            //m_LocalSetupPlayer.m_PlayerController.CmdUpdateArcLength(-999999);
             return -999999;
         }
         else if (this.m_Players[ID].ID != m_LocalSetupPlayer.GetPlayerInfo().ID)
