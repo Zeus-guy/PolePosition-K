@@ -44,7 +44,6 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Text waitingText;
     [SerializeField] private GameObject waitingReset;
     #endregion
-    //private float timeout = -1;
     private int dots = 0;
 
     private void Awake()
@@ -58,24 +57,6 @@ public class UIManager : MonoBehaviour
         buttonClient.onClick.AddListener(() => StartClient());
         buttonServer.onClick.AddListener(() => StartServer());
         ActivateMainMenu();
-    }
-
-    private void Update()
-    {
-        /*if (timeout != -1)
-        {
-            timeout += Time.deltaTime;
-            if (Mathf.FloorToInt(timeout) == dots)
-            {
-                UpdateDots();
-                dots++;
-            }
-            if (dots == 6)
-            {
-                timeout = -1;
-                waitingReset.SetActive(true);
-            }
-        }*/
     }
 
     private void UpdateDotsTask()
@@ -113,8 +94,6 @@ public class UIManager : MonoBehaviour
     public void ToggleWaitingHUD(bool state)
     {
         waitingBox.SetActive(state);
-        /*if (!state)
-            timeout = -1;*/
     }
     private void StartHost()
     {
@@ -129,10 +108,7 @@ public class UIManager : MonoBehaviour
         m_NetworkManager.StartClient();
         m_NetworkManager.networkAddress = inputFieldIP.text;
         ActivateInGameHUD();
-        //timeout = 0;
-        //Task.Run(()=>UpdateDotsTask());
         new Task(()=>UpdateDotsTask()).Start();
-        //
     }
 
     private void StartServer()
@@ -239,20 +215,17 @@ public class UIManager : MonoBehaviour
 
     public void ResetGame()
     {
-        m_NetworkManager.StopServer();
         Destroy(m_NetworkManager.gameObject);
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
-    private void UpdateDots(/*int dots*/)
+    private void UpdateDots()
     {
         string dotString = "";
         for (int i = 0; i < 6; i++)
         {
             if (i <= dots)
                 dotString += ".";
-            /*else
-                dotString += " ";*/
         }
         dotString = "Connecting to server\nPlease Wait\n" + dotString;
         if (dots >= 5)
