@@ -212,7 +212,7 @@ public class PlayerController : NetworkBehaviour
             axleInfo.rightWheel.GetGroundHit(out wheelHit[1]);
             foreach (var wh in wheelHit)
             {
-                Debug.Log(wh.collider);
+                //Debug.Log(wh.collider);
                 if (wh.normal == Vector3.zero || wh.collider == null || (wh.collider != null && wh.collider.name == "grass"))
                 {
                     currentDownTime -= Time.fixedDeltaTime;

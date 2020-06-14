@@ -80,21 +80,14 @@ public class UIManager : MonoBehaviour
 
     private void UpdateDotsTask()
     {
-        Debug.Log("EY BUENAS A TODOS AQUI WILLYTASK COOOMENTANDO");
         for (int i = 0; i < 6; i++)
         {
-            Debug.Log("ola buenas");
             dots = i;
             UpdateDots();
             Task.Delay(1000).Wait();
-            Debug.Log("enga staluego");
         }
-        Debug.Log("Agarrame esta");
         if (waitingBox.activeSelf)
             waitingReset.SetActive(true);
-        else
-            Debug.Log("POS NO PUDE");
-        Debug.Log("FIN");
     }
 
     public void UpdateSpeed(int speed)

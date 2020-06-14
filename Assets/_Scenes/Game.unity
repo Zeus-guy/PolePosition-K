@@ -2312,6 +2312,7 @@ MonoBehaviour:
   m_Distance: 10
   m_Elevation: 8
   m_Following: 1
+  playerInfo: {fileID: 0}
 --- !u!1001 &381981127
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6457,11 +6458,7 @@ MonoBehaviour:
     m_LineSpacing: 1
   m_Text: 'Connecting to server
 
-    Please Wait
-
-    ..........
-
-    Couldn''t connect to server'
+    Please Wait'
 --- !u!222 &1114402993
 CanvasRenderer:
   m_ObjectHideFlags: 0
