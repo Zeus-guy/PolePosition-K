@@ -207,16 +207,16 @@ public class UIManager : MonoBehaviour
         {
             case 2:
                 ts = player.time1;
-                curTimeText.text = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
+                curTimeText.text = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds);
                 break;
                 
             case 3:
                 ts = player.time2 - player.time1;
-                curTimeText.text = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
+                curTimeText.text = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds);
                 break;
             
         }
-        totalTimeText.text = String.Format("{0:00}:{1:00}.{2:000}", curTime.Minutes, curTime.Seconds, curTime.Milliseconds / 10);
+        totalTimeText.text = String.Format("{0:00}:{1:00}.{2:000}", curTime.Minutes, curTime.Seconds, curTime.Milliseconds);
     }
 
     public void FadeOut()
@@ -246,6 +246,7 @@ public class UIManager : MonoBehaviour
 
     public void ResetGame()
     {
+        m_NetworkManager.StopServer();
         Destroy(m_NetworkManager.gameObject);
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }

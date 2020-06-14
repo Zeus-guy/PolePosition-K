@@ -233,7 +233,6 @@ public class PolePositionManager : NetworkBehaviour
     }
     public void changeLap(PlayerInfo player, float dist)
     {
-        print(player + ", " + dist);
         if (player.CanChangeLap)
         {
             if (player.CheckPoint == 0)
@@ -266,7 +265,8 @@ public class PolePositionManager : NetworkBehaviour
                         {
                             timer.Stop();
                             player.time3 = timer.Elapsed;
-                            FinishGame();
+                            if (player.controller.isLocalPlayer)
+                                FinishGame();
                         }
                         break;
                     default:
@@ -277,7 +277,14 @@ public class PolePositionManager : NetworkBehaviour
             }
         }
     }
+    
     private void FinishGame()
+    {
+        m_LocalSetupPlayer.CmdFinishGame();
+    }
+
+    [ClientRpc]
+    public void RpcFinishGame()
     {
         m_LocalSetupPlayer.EndGame();
 
@@ -304,27 +311,33 @@ public class PolePositionManager : NetworkBehaviour
         {
             ts = p.time1;
             if (p.time1 > zeroTs)
-                t1 = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
+                t1 = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds);
             else
                 t1 = "--:--.---";
 
             ts = p.time2 - p.time1;
             if (p.time1 > zeroTs && p.time2 > zeroTs)
-                t2 = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
+                t2 = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds);
             else
                 t2 = "--:--.---";
             
             ts = p.time3 - p.time2;
             if (p.time2 > zeroTs && p.time3 > zeroTs)
-                t3 = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
+                t3 = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds);
             else
                 t3 = "--:--.---";
             
-            ts = timer.Elapsed;
-            if (timer.Elapsed > zeroTs)
-                tt = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
+            if (p.time3 > zeroTs)
+            {
+                ts = p.time3;
+                tt = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds);
+            }
             else
+            {
+                ts = timer.Elapsed;
                 tt = "--:--.---";
+            }
+                
 
             names = names + p.Name + "\n\n";
             lap1 = lap1 + t1 + "\n\n";
@@ -336,7 +349,7 @@ public class PolePositionManager : NetworkBehaviour
         if (isServer)
         {
             RpcChangeScores(names, lap1, lap2, lap3, total);
-            NetworkManager.singleton.StopServer();
+            //NetworkManager.singleton.StopServer();
         }
     }
     [ClientRpc]

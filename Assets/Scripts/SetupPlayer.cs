@@ -208,4 +208,10 @@ public class SetupPlayer : NetworkBehaviour
     {
         m_PlayerController.checkPoints = (Transform[])checkpoints.Clone();
     }
+    [Command]
+    public void CmdFinishGame()
+    {
+        m_PolePositionManager.RpcFinishGame();
+        
+    }
 }
