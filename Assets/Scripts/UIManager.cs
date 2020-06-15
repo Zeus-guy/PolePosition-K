@@ -43,6 +43,9 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Text waitingText;
     [SerializeField] private GameObject waitingReset;
     [SerializeField] private EndLapController m_EndLapController;
+    [SerializeField] private GameObject quitButton;
+    [SerializeField] private GameObject quitConfirmationPanel;
+    [SerializeField] private PolePositionManager m_PolePositionManager;
     #endregion
     private int dots = 0;
 
@@ -239,5 +242,23 @@ public class UIManager : MonoBehaviour
         ToggleWaitingHUD(true);
         waitingReset.SetActive(true);
         waitingText.text = "Lost connection";
+    }
+
+    public void OnButtonQuitGame()
+    {
+        quitButton.SetActive(false);
+        quitConfirmationPanel.SetActive(true);
+    }
+    public void OnButtonCancelQuit()
+    {
+        quitButton.SetActive(true);
+        quitConfirmationPanel.SetActive(false);
+    }
+    public void OnButtonConfirmQuit()
+    {
+        NetworkManager.singleton.StopClient();
+        if (m_PolePositionManager.isServer)
+            NetworkManager.singleton.StopServer();
+        ResetGame();
     }
 }
