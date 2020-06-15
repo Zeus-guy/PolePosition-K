@@ -112,6 +112,7 @@ public class PolePositionManager : NetworkBehaviour
     public void SetLocalPlayer(SetupPlayer sp)
     {
         m_LocalSetupPlayer = sp;
+        m_LocalSetupPlayer.SetCheckPoints(checkPoints);
     }
 
     private class PlayerInfoComparer : Comparer<PlayerInfo>
@@ -147,9 +148,9 @@ public class PolePositionManager : NetworkBehaviour
         
         if (m_LocalSetupPlayer != null)
         {
-            UI_m.SetLap(m_LocalSetupPlayer.GetLap());
+            //UI_m.SetLap(m_LocalSetupPlayer.GetLap());
             UI_m.SetCurTime(m_LocalSetupPlayer.GetPlayerInfo(), timer.Elapsed);
-            m_LocalSetupPlayer.SetCheckPoints(checkPoints);
+            //m_LocalSetupPlayer.SetCheckPoints(checkPoints);
         }
 
         //Debug.Log("El orden de carrera es: " + myRaceOrder);

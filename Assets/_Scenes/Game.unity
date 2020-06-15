@@ -10309,6 +10309,7 @@ MonoBehaviour:
   cameraPosition: {fileID: 372009860}
   gameStarted: 0
   timerStarted: 0
+  countdownStarted: 0
   Player_Count: 1
   checkPoints:
   - {fileID: 1790719546}

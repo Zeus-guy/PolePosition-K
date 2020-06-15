@@ -13,7 +13,25 @@ public class PlayerInfo : MonoBehaviour
 
     public int CurrentPosition { get; set; }
 
-    public int CurrentLap { get; set; }
+    private int m_CurrentLap;
+    public int CurrentLap 
+    {
+        get 
+        { 
+            return m_CurrentLap; 
+        } 
+        set
+        {
+            m_CurrentLap = value;
+            if (OnLapChangeEvent != null)
+            {
+                OnLapChangeEvent(m_CurrentLap);
+            }
+        }
+    }
+    public delegate void OnLapChangeDelegate(int newLap);
+
+    public event OnLapChangeDelegate OnLapChangeEvent;
 
     public override string ToString()
     {

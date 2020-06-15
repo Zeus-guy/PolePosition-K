@@ -160,6 +160,7 @@ public class SetupPlayer : NetworkBehaviour
                     m_PolePositionManager.gameStarted = true;
                 }
             m_PlayerController.OnSpeedChangeEvent += OnSpeedChangeEventHandler;
+            m_PlayerInfo.OnLapChangeEvent += m_UIManager.SetLap;
             ConfigureCamera();
         }
     }
