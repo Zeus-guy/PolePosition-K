@@ -173,7 +173,6 @@ public class PolePositionManager : NetworkBehaviour
             return m_Players[ID].controller.arcLength;
         }
         Vector3 carPos = this.m_Players[ID].transform.position;
-        //Debug.Log(ID + ", " + this.m_Players[ID].Name);
 
         int segIdx;
         float carDist;
@@ -181,59 +180,47 @@ public class PolePositionManager : NetworkBehaviour
 
         float minArcL =
             this.m_CircuitController.ComputeClosestPointArcLength(carPos, out segIdx, out carProj, out carDist);
+        
+        if (m_Players[ID].segIdx == 23 && segIdx < 17)
+        {
+            changeLap(this.m_Players[ID]);
+        }
 
         m_Players[ID].segIdx = segIdx;
 
         this.m_DebuggingSpheres[ID].transform.position = carProj;
 
-        if (this.m_Players[ID].CurrentLap == 0)
+        
+
+        bool isBehind = false;
+        if (this.m_Players[ID].CheckPoint == 1 || (this.m_Players[ID].CheckPoint != 1 && !this.m_Players[ID].CanChangeLap))
+        {
+            if (segIdx > 3)
+                isBehind = true;
+        }
+
+        if (isBehind)
+        {
+            print(minArcL);
+            if (this.m_Players[ID].controller.CurrentLap-1 == 0)
+            {
+                minArcL -= m_CircuitController.CircuitLength;
+            }
+            else
+            {
+                minArcL += m_CircuitController.CircuitLength * (m_Players[ID].controller.CurrentLap - 2);
+            
+            }    
+            print(minArcL);    
+        }
+        else if (this.m_Players[ID].controller.CurrentLap == 0)
         {
             minArcL -= m_CircuitController.CircuitLength;
         }
         else
         {
             minArcL += m_CircuitController.CircuitLength *
-                       (m_Players[ID].CurrentLap - 1);
-        }
-//Debug.Log("i = " + ID + ", minArcL = " + minArcL);
-
-        bool isBehind = false;
-        if (this.m_Players[ID].CheckPoint == 1 || (this.m_Players[ID].CheckPoint != 1 && !this.m_Players[ID].CanChangeLap))
-        {
-            switch (this.m_Players[ID].CurrentLap)
-            {
-                case 0:
-                    if (minArcL > -200)
-                        isBehind = true;
-                    break;
-                    
-                case 1:
-                    if (minArcL > 100)
-                        isBehind = true;
-                    break;
-                    
-                case 2:
-                    if (minArcL > 500)
-                        isBehind = true;
-                    break;
-                    
-                case 3:
-                    if (minArcL > 1000)
-                        isBehind = true;
-                    break;
-            }
-        }
-        if (isBehind)
-        {
-            if (this.m_Players[ID].CurrentLap-1 == 0)
-            {
-                minArcL -= m_CircuitController.CircuitLength;
-            }
-            else
-            {
-                minArcL += m_CircuitController.CircuitLength * (m_Players[ID].CurrentLap - 2);
-            
-            }        
+                       (m_Players[ID].controller.CurrentLap - 1);
         }
 
 
@@ -242,49 +229,43 @@ public class PolePositionManager : NetworkBehaviour
         return minArcL;
 
     }
-    public void changeLap(PlayerInfo player, float dist)
+    public void changeLap(PlayerInfo player)
     {
+        //print(player.Name + ": checkpoint " + player.CheckPoint + ", vuelta " + player.CurrentLap + ", puede cambiar? " + player.CanChangeLap + ", dist: " + dist);
         if (player.CanChangeLap)
         {
             if (player.CheckPoint == 0)
             {
-                switch (player.CurrentLap)
+                switch (player.controller.CurrentLap)
                 {
-                    case 0:
-                        if (dist > -200)
-                            return;
-                        break;
-                        
                     case 1:
-                        if (dist > 100)
-                            return;
-                        else
-                            player.time1 = timer.Elapsed;
+                        if (player.controller.isLocalPlayer)
+                            player.controller.CmdChangeTimes(0, timer.Elapsed.Ticks);
+                        player.time1 = timer.Elapsed;
                         break;
                         
                     case 2:
-                        if (dist > 500)
-                            return;
-                        else
-                            player.time2 = timer.Elapsed;
+                        if (player.controller.isLocalPlayer)
+                            player.controller.CmdChangeTimes(1, timer.Elapsed.Ticks);
+                        player.time2 = timer.Elapsed;
                         break;
                         
                     case 3:
-                        if (dist > 1000)
-                            return;
-                        else
-                        {
-                            timer.Stop();
-                            player.time3 = timer.Elapsed;
-                            if (player.controller.isLocalPlayer)
-                                FinishGame();
-                        }
+                        print("venga vamos aqui entramos");
+                        timer.Stop();
+                        if (player.controller.isLocalPlayer)
+                            player.controller.CmdChangeTimes(2, timer.Elapsed.Ticks);
+                        player.time3 = timer.Elapsed;
+                        if (player.controller.isLocalPlayer)
+                            FinishGame();
                         break;
-                    default:
-                        return;
                 }
-                player.CurrentLap++;
-                player.CanChangeLap = false;
+                if (player.controller.isLocalPlayer)
+                {
+                    player.controller.CmdIncreaseLap();
+                    player.CanChangeLap = false;
+                }
+                //player.CanChangeLap = false;
             }
         }
     }
@@ -307,67 +288,93 @@ public class PolePositionManager : NetworkBehaviour
     {
         UI_m.SetEndingUI();
 
-        string names = "Players\n\n";
-        string lap1 = "Lap 1\n\n";
-        string lap2 = "Lap 2\n\n";
-        string lap3 = "Lap 3\n\n";
-        string total = "Total\n\n";
-        string t1, t2, t3, tt;
-        TimeSpan ts;
-        TimeSpan zeroTs = new TimeSpan(0);
-
-        PlayerInfo[] playerArray = SortPlayers();
-
-        foreach (PlayerInfo p in playerArray)
-        {
-            ts = p.time1;
-            if (p.time1 > zeroTs)
-                t1 = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds);
-            else
-                t1 = "--:--.---";
-
-            ts = p.time2 - p.time1;
-            if (p.time1 > zeroTs && p.time2 > zeroTs)
-                t2 = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds);
-            else
-                t2 = "--:--.---";
-            
-            ts = p.time3 - p.time2;
-            if (p.time2 > zeroTs && p.time3 > zeroTs)
-                t3 = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds);
-            else
-                t3 = "--:--.---";
-            
-            if (p.time3 > zeroTs)
-            {
-                ts = p.time3;
-                tt = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds);
-            }
-            else
-            {
-                ts = timer.Elapsed;
-                tt = "--:--.---";
-            }
-                
-
-            names = names + p.Name + "\n\n";
-            lap1 = lap1 + t1 + "\n\n";
-            lap2 = lap2 + t2 + "\n\n";
-            lap3 = lap3 + t3 + "\n\n";
-            total = total + tt + "\n\n";
-        }
-
         if (isServer)
         {
-            RpcChangeScores(names, lap1, lap2, lap3, total);
+            string names = "Players\n\n";
+            string lap1 = "Lap 1\n\n";
+            string lap2 = "Lap 2\n\n";
+            string lap3 = "Lap 3\n\n";
+            string total = "Total\n\n";
+            string t1, t2, t3, tt, bt;
+            string[] laps = new string[3];
+            string bestLap = "Best Lap\n\n";
+            TimeSpan ts, bestTs;
+            TimeSpan zeroTs = new TimeSpan(0);
+
+            PlayerInfo[] playerArray = SortPlayers();
+
+            foreach (PlayerInfo p in playerArray)
+            {
+                ts = p.time1;
+                bestTs = ts;
+                if (p.time1 > zeroTs)
+                    t1 = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds);
+                else
+                    t1 = "--:--.---";
+
+                ts = p.time2 - p.time1;
+                if (ts < bestTs && ts > zeroTs)
+                    bestTs = ts;
+
+                if (p.time1 > zeroTs && p.time2 > zeroTs)
+                    t2 = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds);
+                else
+                    t2 = "--:--.---";
+                
+                ts = p.time3 - p.time2;
+                if (ts < bestTs && ts > zeroTs)
+                    bestTs = ts;
+
+                if (p.time2 > zeroTs && p.time3 > zeroTs)
+                {
+                    print("entro aqui");
+                    t3 = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds);
+                }
+                else
+                    t3 = "--:--.---";
+                
+                if (p.time3 > zeroTs)
+                {
+                    ts = p.time3;
+                    tt = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds);
+                }
+                else
+                {
+                    ts = timer.Elapsed;
+                    tt = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds);
+                }
+
+                if (bestTs > zeroTs)
+                {
+                    bt = String.Format("{0:00}:{1:00}.{2:000}", bestTs.Minutes, bestTs.Seconds, bestTs.Milliseconds);
+                }
+                else
+                {
+                    bt = "--:--.---";
+                }
+                    
+
+                names = names + p.Name + "\n\n";
+                lap1 = lap1 + t1 + "\n\n";
+                lap2 = lap2 + t2 + "\n\n";
+                lap3 = lap3 + t3 + "\n\n";
+                total = total + tt + "\n\n";
+                bestLap = bestLap + bt + "\n\n";
+
+            }
+            laps[0] = lap1;
+            laps[1] = lap2;
+            laps[2] = lap3;
+
+            RpcChangeScores(names, laps, bestLap, total);
             //NetworkManager.singleton.StopServer();
         }
     }
     [ClientRpc]
-    void RpcChangeScores(string names, string lap1, string lap2, string lap3, string total)
+    void RpcChangeScores(string names, string[] laps, string bestLap, string total)
     {
         UI_m.SetEndingUI();
-        UI_m.SetScores(names, lap1, lap2, lap3, total);
+        UI_m.SetScores(names, laps, bestLap, total);
         if (isClient)
         {
             NetworkManager.singleton.StopClient();
@@ -388,7 +395,7 @@ public class PolePositionManager : NetworkBehaviour
         for (int i = 0; i < m_Players.Count; ++i)
         {
             arcLengths[i] = /*m_Players[i].controller.arcLength;*/ComputeCarArcLength(i);
-            changeLap(m_Players[i], arcLengths[i]);
+            //changeLap(m_Players[i], arcLengths[i]);
         }
 
         int newId = 0;

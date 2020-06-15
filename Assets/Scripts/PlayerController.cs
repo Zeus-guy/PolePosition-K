@@ -28,6 +28,7 @@ public class PlayerController : NetworkBehaviour
     private float InputBrake { get; set; }
 
     private PlayerInfo m_PlayerInfo;
+    private UIManager m_UIManager;
 
     private Rigidbody m_Rigidbody;
     private float m_SteerHelper = 0.8f;
@@ -36,6 +37,7 @@ public class PlayerController : NetworkBehaviour
     public float currentDownTime = maxDownTime;
     public Transform[] checkPoints;
     [SyncVar] public float arcLength;
+    [SyncVar(hook = nameof(ChangeLapHook))] public int CurrentLap;
 
     private float Speed
     {
@@ -62,6 +64,7 @@ public class PlayerController : NetworkBehaviour
     {
         m_Rigidbody = GetComponent<Rigidbody>();
         m_PlayerInfo = GetComponent<PlayerInfo>();
+        m_UIManager = FindObjectOfType<UIManager>();
     }
 
     public void Update()
@@ -71,13 +74,7 @@ public class PlayerController : NetworkBehaviour
         InputBrake = Input.GetAxis("Jump");
         Speed = m_Rigidbody.velocity.magnitude;
 
-        if (currentDownTime <= 0)
-        {
-            m_Rigidbody.velocity = Vector3.zero;
-            this.gameObject.transform.position = checkPoints[m_PlayerInfo.LastCheckPoint].position;
-            this.gameObject.transform.eulerAngles = checkPoints[m_PlayerInfo.LastCheckPoint].eulerAngles;
-            currentDownTime = maxDownTime;
-        }
+        
 
     }
 
@@ -138,6 +135,14 @@ public class PlayerController : NetworkBehaviour
         SpeedLimiter();
         AddDownForce();
         TractionControl();
+
+        if (currentDownTime <= 0)
+        {
+            m_Rigidbody.velocity = Vector3.zero;
+            this.gameObject.transform.position = checkPoints[m_PlayerInfo.LastCheckPoint].position;
+            this.gameObject.transform.eulerAngles = checkPoints[m_PlayerInfo.LastCheckPoint].eulerAngles;
+            currentDownTime = maxDownTime;
+        }
     }
 
     #endregion
@@ -261,5 +266,35 @@ public class PlayerController : NetworkBehaviour
     public void CmdUpdateArcLength(float newArcL)
     {
         arcLength = newArcL;
+    }
+
+    public void ChangeLapHook(int oldLap, int newLap)
+    {
+        m_PlayerInfo.CurrentLap = newLap;
+        m_PlayerInfo.CanChangeLap = false;
+        if (isLocalPlayer)
+            m_UIManager.SetLap(newLap);
+    }
+
+    [Command]
+    public void CmdIncreaseLap()
+    {
+        CurrentLap++;
+    }
+    [Command]
+    public void CmdChangeTimes(int lap, long time)
+    {
+        switch (lap)
+        {
+            case 0:
+                m_PlayerInfo.time1 = new TimeSpan(time);
+                break;
+            case 1:
+                m_PlayerInfo.time2 = new TimeSpan(time);
+                break;
+            case 2:
+                m_PlayerInfo.time3 = new TimeSpan(time);
+                break;
+        }
     }
 }

@@ -195,6 +195,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 370ebdb6a034beb4dad079ecb19fb3c9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  CurrentLap: 0
+  segIdx: 23
+  controller: {fileID: 0}
 --- !u!114 &1137246169109603126
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -228,6 +231,8 @@ MonoBehaviour:
   slipLimit: 0.2
   currentDownTime: 2
   checkPoints: []
+  arcLength: 0
+  CurrentLap: 0
 --- !u!114 &6346869062069434778
 MonoBehaviour:
   m_ObjectHideFlags: 0

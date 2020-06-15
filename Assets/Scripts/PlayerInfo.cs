@@ -13,8 +13,8 @@ public class PlayerInfo : MonoBehaviour
 
     public int CurrentPosition { get; set; }
 
-    private int m_CurrentLap;
-    public int CurrentLap 
+    public int CurrentLap;
+    /*public int CurrentLap 
     {
         get 
         { 
@@ -31,7 +31,7 @@ public class PlayerInfo : MonoBehaviour
     }
     public delegate void OnLapChangeDelegate(int newLap);
 
-    public event OnLapChangeDelegate OnLapChangeEvent;
+    public event OnLapChangeDelegate OnLapChangeEvent;*/
 
     public override string ToString()
     {
@@ -46,7 +46,7 @@ public class PlayerInfo : MonoBehaviour
     public TimeSpan time2;
     public TimeSpan time3;
 
-    public int segIdx = 0;
+    public int segIdx = 23;
 
     public PlayerController controller;
 }

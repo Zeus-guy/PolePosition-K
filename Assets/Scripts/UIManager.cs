@@ -33,9 +33,8 @@ public class UIManager : MonoBehaviour
     
     [SerializeField] private GameObject endingHUD;
     [SerializeField] private Text endNames;
-    [SerializeField] private Text endLap1;
-    [SerializeField] private Text endLap2;
-    [SerializeField] private Text endLap3;
+    [SerializeField] private Text endLapText;
+    [SerializeField] private Text endBestLap;
     [SerializeField] private Text endTotal;
     [SerializeField] private GameObject nameField;
     [SerializeField] private GameObject colorField;
@@ -43,6 +42,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject waitingBox;
     [SerializeField] private Text waitingText;
     [SerializeField] private GameObject waitingReset;
+    [SerializeField] private EndLapController m_EndLapController;
     #endregion
     private int dots = 0;
 
@@ -172,7 +172,7 @@ public class UIManager : MonoBehaviour
     public void SetCurTime(PlayerInfo player, TimeSpan curTime)
     {
         TimeSpan ts;
-        switch (player.CurrentLap)
+        switch (player.controller.CurrentLap)
         {
             case 2:
                 ts = player.time1;
@@ -200,13 +200,13 @@ public class UIManager : MonoBehaviour
         endingHUD.SetActive(true);
     }
 
-    public void SetScores(string names, string lap1, string lap2, string lap3, string total)
+    public void SetScores(string names, string[] laps, string bestLap, string total)
     {
         endNames.text = names;
-        endLap1.text = lap1;
-        endLap2.text = lap2;
-        endLap3.text = lap3;
+        endLapText.text = laps[0];
+        endBestLap.text = bestLap;
         endTotal.text = total;
+        m_EndLapController.SetLap(laps);
     }
     public void FadeIn()
     {

@@ -57,7 +57,7 @@ public class SetupPlayer : NetworkBehaviour
 
         SetColour(0, m_Colour);
         
-        m_PlayerInfo.CurrentLap = 0;
+        //m_PlayerController.CurrentLap = 0;
         m_PolePositionManager.AddPlayer(m_PlayerInfo);
         m_PlayerInfo.CheckPoint = 0;
         m_PlayerInfo.CanChangeLap = true;
@@ -160,7 +160,6 @@ public class SetupPlayer : NetworkBehaviour
                     m_PolePositionManager.gameStarted = true;
                 }
             m_PlayerController.OnSpeedChangeEvent += OnSpeedChangeEventHandler;
-            m_PlayerInfo.OnLapChangeEvent += m_UIManager.SetLap;
             ConfigureCamera();
         }
     }
@@ -203,10 +202,10 @@ public class SetupPlayer : NetworkBehaviour
         }
     }
 
-    public int GetLap()
+    /*public int GetLap()
     {
         return m_PlayerInfo.CurrentLap;
-    }
+    }*/
 
     public PlayerInfo GetPlayerInfo()
     {
