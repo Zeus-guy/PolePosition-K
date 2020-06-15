@@ -126,7 +126,7 @@ public class PolePositionManager : NetworkBehaviour
 
         public override int Compare(PlayerInfo x, PlayerInfo y)
         {
-            if (this.m_ArcLengths[x.sortID] < (m_ArcLengths[y.sortID]))
+            if (this.m_ArcLengths[x.CurrentPosition] < (m_ArcLengths[y.CurrentPosition]))
                 return 1;
             else return -1;
         }
@@ -407,12 +407,10 @@ public class PolePositionManager : NetworkBehaviour
             }
             else
             {
-                m_Players[i].sortID = newId;
+                m_Players[i].CurrentPosition = newId;
                 newId++;
             }
         }
-        /*if (isClient)
-            ComputeCarArcLength(m_LocalSetupPlayer.GetPlayerInfo().sortID);*/
 
         //m_Players.Sort(new PlayerInfoComparer(arcLengths));
         PlayerInfo[] arr = m_Players.ToArray();
