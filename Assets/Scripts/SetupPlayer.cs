@@ -40,6 +40,21 @@ public class SetupPlayer : NetworkBehaviour
     {
         base.OnStartServer();
         m_ID = connectionToClient.connectionId;
+        if (isServerOnly)
+        {
+            m_PlayerInfo.ID = m_ID;
+            m_PlayerInfo.controller = m_PlayerController;
+
+            //Asignación del nombre del jugador
+            //SetName("", m_Name);
+
+            //SetColour(0, m_Colour);
+            
+            //m_PlayerController.CurrentLap = 0;
+            m_PolePositionManager.AddPlayer(m_PlayerInfo);
+            m_PlayerInfo.CheckPoint = 0;
+            m_PlayerInfo.CanChangeLap = true;
+        }
     }
 
     /// <summary>
@@ -69,6 +84,7 @@ public class SetupPlayer : NetworkBehaviour
     {
         //GetComponent<NetworkIdentity>().AssignClientAuthority(this.GetComponent<NetworkIdentity>().connectionToClient);
         m_Name = name;
+        SetName("",name);
     }
     //Manda el color al servidor
     [Command]
@@ -76,6 +92,7 @@ public class SetupPlayer : NetworkBehaviour
     {
         //GetComponent<NetworkIdentity>().AssignClientAuthority(this.GetComponent<NetworkIdentity>().connectionToClient);
         m_Colour = color;
+        SetColour(0,color);
     }
 
     private void SetName(string oldName, string newName)
@@ -211,6 +228,11 @@ public class SetupPlayer : NetworkBehaviour
     [Command]
     public void CmdFinishGame()
     {
+        if (isServerOnly)
+        {
+            m_PolePositionManager.RpcFinishGame();
+            m_UIManager.FadeOut();
+        }
         m_PolePositionManager.RpcFinishGame();
         
     }

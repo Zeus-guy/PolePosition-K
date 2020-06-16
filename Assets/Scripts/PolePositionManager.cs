@@ -160,10 +160,10 @@ public class PolePositionManager : NetworkBehaviour
 
     float ComputeCarArcLength(int ID)
     {
-        if (!isClient)
+        /*if (!isClient)
         {
             return -999990;
-        }
+        }*/
         // Compute the projection of the car position to the closest circuit 
         // path segment and accumulate the arc-length along of the car along
         // the circuit.
@@ -172,7 +172,14 @@ public class PolePositionManager : NetworkBehaviour
             //m_LocalSetupPlayer.m_PlayerController.CmdUpdateArcLength(-999999);
             return -999999;
         }
-        else if (this.m_Players[ID].ID != m_LocalSetupPlayer.GetPlayerInfo().ID)
+        else if (m_LocalSetupPlayer != null)
+        {
+            if (this.m_Players[ID].ID != m_LocalSetupPlayer.GetPlayerInfo().ID)
+            {
+                return m_Players[ID].controller.arcLength;
+            }
+        }
+        else
         {
             return m_Players[ID].controller.arcLength;
         }
@@ -205,7 +212,7 @@ public class PolePositionManager : NetworkBehaviour
 
         if (isBehind)
         {
-            print(minArcL);
+            //print(minArcL);
             if (this.m_Players[ID].controller.CurrentLap-1 == 0)
             {
                 minArcL -= m_CircuitController.CircuitLength;
@@ -215,7 +222,7 @@ public class PolePositionManager : NetworkBehaviour
                 minArcL += m_CircuitController.CircuitLength * (m_Players[ID].controller.CurrentLap - 2);
             
             }    
-            print(minArcL);    
+            //print(minArcL);    
         }
         else if (this.m_Players[ID].controller.CurrentLap == 0)
         {
@@ -276,7 +283,15 @@ public class PolePositionManager : NetworkBehaviour
     
     public void FinishGame()
     {
-        m_LocalSetupPlayer.CmdFinishGame();
+        if (isServerOnly)
+        {
+            RpcFinishGame();
+            UI_m.FadeOut();
+        }
+        else
+        {
+            m_LocalSetupPlayer.CmdFinishGame();
+        }
     }
 
     [ClientRpc]
@@ -371,23 +386,26 @@ public class PolePositionManager : NetworkBehaviour
             laps[2] = lap3;
             
             RpcChangeScores(names, laps, bestLap, total);
+            if (isServerOnly)
+                ChangeScores(names, laps, bestLap, total);
             //NetworkManager.singleton.StopServer();
         }
     }
     [ClientRpc]
     void RpcChangeScores(string names, string[] laps, string bestLap, string total)
     {
-        print("hola buenas: " + isClient + ", " + isClientOnly + ", " + isServer + ", " + isServerOnly);
+        ChangeScores(names, laps, bestLap, total);
+    }
+    private void ChangeScores(string names, string[] laps, string bestLap, string total)
+    {
         UI_m.SetEndingUI();
         UI_m.SetScores(names, laps, bestLap, total);
         if (isClient)
         {
-            print("hasta luego crack");
             NetworkManager.singleton.StopClient();
-            if(isServer)
-                NetworkManager.singleton.StopServer();
-
         }
+        if(isServer)
+            NetworkManager.singleton.StopServer();
         //Mover la cámara del jugador a donde toca
         cameraPosition.position = new Vector3(0,2.82f,-10);
         cameraPosition.localEulerAngles = Vector3.zero;

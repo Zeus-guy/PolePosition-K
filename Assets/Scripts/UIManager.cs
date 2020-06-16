@@ -45,7 +45,10 @@ public class UIManager : MonoBehaviour
     [SerializeField] private EndLapController m_EndLapController;
     [SerializeField] private GameObject quitButton;
     [SerializeField] private GameObject quitConfirmationPanel;
+    [SerializeField] private GameObject quitButtonServer;
+    [SerializeField] private GameObject quitConfirmationPanelServer;
     [SerializeField] private PolePositionManager m_PolePositionManager;
+    [SerializeField] private GameObject serverHUD;
     #endregion
     private int dots = 0;
 
@@ -95,6 +98,13 @@ public class UIManager : MonoBehaviour
         mainMenu.SetActive(false);
         inGameHUD.SetActive(true);
     }
+    private void ActivateServerHUD()
+    {
+        mainMenu.SetActive(false);
+        nameField.SetActive(false);
+        colorField.SetActive(false);
+        serverHUD.SetActive(true);
+    }
 
     public void ToggleWaitingHUD(bool state)
     {
@@ -119,7 +129,7 @@ public class UIManager : MonoBehaviour
     private void StartServer()
     {
         m_NetworkManager.StartServer();
-        ActivateInGameHUD();
+        ActivateServerHUD();
     }
 
     public void SetCountDown(string t)
@@ -203,6 +213,7 @@ public class UIManager : MonoBehaviour
         mainMenu.SetActive(false);
         inGameHUD.SetActive(false);
         endingHUD.SetActive(true);
+        serverHUD.SetActive(false);
     }
 
     public void SetScores(string names, string[] laps, string bestLap, string total)
@@ -255,6 +266,16 @@ public class UIManager : MonoBehaviour
     {
         quitButton.SetActive(true);
         quitConfirmationPanel.SetActive(false);
+    }
+        public void OnButtonQuitServer()
+    {
+        quitButtonServer.SetActive(false);
+        quitConfirmationPanelServer.SetActive(true);
+    }
+    public void OnButtonCancelQuitServer()
+    {
+        quitButtonServer.SetActive(true);
+        quitConfirmationPanelServer.SetActive(false);
     }
     public void OnButtonConfirmQuit()
     {
