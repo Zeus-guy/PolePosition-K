@@ -18,8 +18,8 @@ public class PolePositionManager : NetworkBehaviour
     private readonly List<PlayerInfo> m_Players = new List<PlayerInfo>(4);
     private CircuitController m_CircuitController;
     private GameObject[] m_DebuggingSpheres;
-    private const float MAXCOUNTDOWN = 3;
-    private float countdown = MAXCOUNTDOWN;
+    public readonly float MAXCOUNTDOWN = 3;
+    public float countdown;
     public bool gameStarted, timerStarted;
     [SyncVar] public bool countdownStarted;
     private SetupPlayer m_LocalSetupPlayer;
@@ -34,6 +34,7 @@ public class PolePositionManager : NetworkBehaviour
 
     private void Awake()
     {
+        countdown = MAXCOUNTDOWN;
         if (networkManager == null) networkManager = FindObjectOfType<CustomNetworkManager>();
         networkManager.polePositionManager = this;
         if (m_CircuitController == null) m_CircuitController = FindObjectOfType<CircuitController>();
