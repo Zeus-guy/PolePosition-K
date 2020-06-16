@@ -183,10 +183,6 @@ public class SetupPlayer : NetworkBehaviour
             m_PlayerController.enabled = false;
             m_UIManager.ServerCrashMessage();
         }
-        /*if (NetworkManager.singleton.numPlayers <= 0)
-        {
-            NetworkManager.singleton.StopServer();
-        }*/
     }
 
     void OnSpeedChangeEventHandler(float speed)
@@ -202,11 +198,6 @@ public class SetupPlayer : NetworkBehaviour
             Camera.main.gameObject.GetComponent<CameraController>().playerInfo = m_PlayerInfo;
         }
     }
-
-    /*public int GetLap()
-    {
-        return m_PlayerInfo.CurrentLap;
-    }*/
 
     public PlayerInfo GetPlayerInfo()
     {

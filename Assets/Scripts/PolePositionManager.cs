@@ -368,7 +368,7 @@ public class PolePositionManager : NetworkBehaviour
             laps[0] = lap1;
             laps[1] = lap2;
             laps[2] = lap3;
-
+            
             RpcChangeScores(names, laps, bestLap, total);
             //NetworkManager.singleton.StopServer();
         }
@@ -383,6 +383,9 @@ public class PolePositionManager : NetworkBehaviour
         {
             print("hasta luego crack");
             NetworkManager.singleton.StopClient();
+            if(isServer)
+                NetworkManager.singleton.StopServer();
+
         }
         //Mover la cámara del jugador a donde toca
         cameraPosition.position = new Vector3(0,2.82f,-10);

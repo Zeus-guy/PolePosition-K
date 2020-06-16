@@ -16,7 +16,7 @@ public class CustomNetworkManager : NetworkManager
     {
         base.OnServerDisconnect(conn);
         print("Se fue alguien. Ahora son " + numPlayers + ". esto viene de " + conn.connectionId);
-        if (numPlayers == 1 && polePositionManager != null)
+        if (numPlayers == 1 && polePositionManager != null && polePositionManager.gameStarted)
         {
             polePositionManager.FinishGame();
         }

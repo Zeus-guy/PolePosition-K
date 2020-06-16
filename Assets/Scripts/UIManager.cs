@@ -259,11 +259,6 @@ public class UIManager : MonoBehaviour
     public void OnButtonConfirmQuit()
     {
         NetworkManager.singleton.StopClient();
-        /*if (m_PolePositionManager.isServer)
-        {
-            print("hola buenas");
-            NetworkManager.singleton.StopServer();
-        }*/
         NetworkManager.singleton.StopServer();
         ResetGame();
     }
