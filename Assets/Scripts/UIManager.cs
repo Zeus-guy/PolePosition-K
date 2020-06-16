@@ -66,6 +66,8 @@ public class UIManager : MonoBehaviour
     {
         for (int i = 0; i < 6; i++)
         {
+            if (!waitingBox.activeSelf)
+                return;
             dots = i;
             UpdateDots();
             Task.Delay(1000).Wait();
@@ -257,8 +259,12 @@ public class UIManager : MonoBehaviour
     public void OnButtonConfirmQuit()
     {
         NetworkManager.singleton.StopClient();
-        if (m_PolePositionManager.isServer)
+        /*if (m_PolePositionManager.isServer)
+        {
+            print("hola buenas");
             NetworkManager.singleton.StopServer();
+        }*/
+        NetworkManager.singleton.StopServer();
         ResetGame();
     }
 }

@@ -177,15 +177,16 @@ public class SetupPlayer : NetworkBehaviour
     
     void OnDestroy()
     {
+        print("me estoy destruyendo");
         if (!gameEnded && isLocalPlayer)
         {
             m_PlayerController.enabled = false;
             m_UIManager.ServerCrashMessage();
         }
-        if (NetworkManager.singleton.numPlayers <= 0)
+        /*if (NetworkManager.singleton.numPlayers <= 0)
         {
             NetworkManager.singleton.StopServer();
-        }
+        }*/
     }
 
     void OnSpeedChangeEventHandler(float speed)
