@@ -118,24 +118,31 @@ public class PolePositionManager : NetworkBehaviour
 
         public override int Compare(PlayerInfo x, PlayerInfo y)
         {
-            if (this.m_ArcLengths[x.CurrentPosition] < (m_ArcLengths[y.CurrentPosition]))
+            if (this.m_ArcLengths[x.ArrayPosition] < (m_ArcLengths[y.ArrayPosition]))
                 return 1;
             else return -1;
         }
     }
     
-    /// <summary> Toma un array ordenado y lo muestra por pantalla. </summary>
+    /// <summary> Toma un array ordenado y lo muestra por pantalla si la posición de alguno de los jugadores ha cambiado. </summary>
     public void UpdateRaceProgress()
     {
         PlayerInfo[] arr = SortPlayers();
 
         string myRaceOrder = "";
-        foreach (var _player in arr)
-        {
-            myRaceOrder += _player.Name + "\n";
-        }
 
-        UI_m.SetTextPosition(myRaceOrder);
+        bool updatePosition = false;
+        for (int i = 0; i < arr.Length; i++)
+        {
+            if (arr[i].CurrentPosition != i)
+            {
+                updatePosition = true;
+                arr[i].CurrentPosition = i;
+            }
+            myRaceOrder += arr[i].Name + "\n";
+        }
+        if (updatePosition)
+            UI_m.SetTextPosition(myRaceOrder);
         
         if (m_LocalSetupPlayer != null)
         {
@@ -405,13 +412,14 @@ public class PolePositionManager : NetworkBehaviour
             }
             else
             {
-                m_Players[i].CurrentPosition = newId;
+                m_Players[i].ArrayPosition = newId;
                 newId++;
             }
         }
 
         PlayerInfo[] arr = m_Players.ToArray();
         Array.Sort(arr, new PlayerInfoComparer(arcLengths));
+
         return arr;
     }
 

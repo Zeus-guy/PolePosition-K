@@ -11,6 +11,7 @@ public class PlayerInfo : MonoBehaviour
 
     public int ID { get; set; }
 
+    public int ArrayPosition { get; set; }
     public int CurrentPosition { get; set; }
 
     public int CurrentLap;
