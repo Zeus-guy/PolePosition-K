@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary> Esta clase se ocupa de llamar a ciertas funciones cuando acaban las animaciones de fundido a negro. </summary>
 public class FadeController : MonoBehaviour
 {
-    // Start is called before the first frame update
     public PolePositionManager ppm;
     public void OnFadeEnd()
     {

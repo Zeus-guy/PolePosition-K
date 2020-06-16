@@ -4,6 +4,7 @@ using Mirror;
 using UnityEngine;
 using System;
 
+/// <summary> Clase que almacena información importante sobre el jugador. </summary>
 public class PlayerInfo : MonoBehaviour
 {
     public string Name { get; set; }

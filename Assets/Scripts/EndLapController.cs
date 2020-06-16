@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary> Clase que sirve para cambiar los tiempos mostrados en la pantalla final según indique el desplegable que aparece en la misma. </summary>
 public class EndLapController : MonoBehaviour
 {
     public Text LapText;

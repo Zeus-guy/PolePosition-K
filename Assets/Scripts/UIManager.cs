@@ -7,6 +7,7 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using System.Threading.Tasks;
 
+/// <summary> Clase que se encarga de controlar las diversas interfaces del juego. </summary>
 public class UIManager : MonoBehaviour
 {
     public bool showGUI = true;
@@ -57,6 +58,7 @@ public class UIManager : MonoBehaviour
         m_NetworkManager = FindObjectOfType<NetworkManager>();
     }
 
+    /// <summary> En Start se asignan funciones a los delegados de los botones del menú principal. </summary>
     private void Start()
     {
         buttonHost.onClick.AddListener(() => StartHost());
@@ -65,6 +67,9 @@ public class UIManager : MonoBehaviour
         ActivateMainMenu();
     }
 
+    /// <summary> Tarea que incrementa la variable dots seis veces, esperando un segundo tras incrementarla.
+    /// Si la interfaz correspondiente está activa al llegar al último punto, se activa el botón que permite volver al menú principal. 
+    /// Si el cliente consigue conectarse, la función se cancela prematuramente. </summary>
     private void UpdateDotsTask()
     {
         for (int i = 0; i < 6; i++)
@@ -79,11 +84,13 @@ public class UIManager : MonoBehaviour
             waitingReset.SetActive(true);
     }
 
+    /// <summary> Función que actualiza la velocidad en la interfaz. </summary>
     public void UpdateSpeed(int speed)
     {
         textSpeed.text = "Speed " + speed + " Km/h";
     }
 
+    /// <summary> Función que activa la interfaz del menú principal, y desactiva las demás. </summary>
     public void ActivateMainMenu()
     {
         mainMenu.SetActive(true);
@@ -93,11 +100,14 @@ public class UIManager : MonoBehaviour
         colorField.SetActive(true);
     }
 
+    /// <summary> Función que activa la interfaz in-game, y desactiva las demás. </summary>
     private void ActivateInGameHUD()
     {
         mainMenu.SetActive(false);
         inGameHUD.SetActive(true);
     }
+    
+    /// <summary> Función que activa la interfaz del servidor dedicado, y desactiva las demás. </summary>
     private void ActivateServerHUD()
     {
         mainMenu.SetActive(false);
@@ -106,10 +116,13 @@ public class UIManager : MonoBehaviour
         serverHUD.SetActive(true);
     }
 
+    /// <summary> Función que activa o desactiva la interfaz que indica que se está intentando realizar una conexión con el servidor. </summary>
     public void ToggleWaitingHUD(bool state)
     {
         waitingBox.SetActive(state);
     }
+
+    /// <summary> Función que inicia un host, que funciona como servidor y cliente simultáneamente. </summary>
     private void StartHost()
     {
         m_NetworkManager.maxConnections = maxPlayers.value+2;
@@ -117,6 +130,7 @@ public class UIManager : MonoBehaviour
         ActivateInGameHUD();
     }
 
+    /// <summary> Función que inicia un cliente. </summary>
     private void StartClient()
     {
         ToggleWaitingHUD(true);
@@ -126,12 +140,14 @@ public class UIManager : MonoBehaviour
         new Task(()=>UpdateDotsTask()).Start();
     }
 
+    /// <summary> Función que inicia un servidor dedicado. </summary>
     private void StartServer()
     {
         m_NetworkManager.StartServer();
         ActivateServerHUD();
     }
 
+    /// <summary> Función que asigna a la interfaz de la cuenta atrás un texto determinado. </summary>
     public void SetCountDown(string t)
     {
         if (textCountDown.color.a != 1)
@@ -146,11 +162,15 @@ public class UIManager : MonoBehaviour
         textCountDown.text = t;
     }
 
+    
+    /// <summary> Función que devuelve el texto de la interfaz de la cuenta atrás. </summary>
     public string GetCountDown()
     {
         return textCountDown.text;
     }
 
+    /// <summary> Función que, dado un float t, asigna al texto de la interfaz de la cuenta atrás la parte entera del número, 
+    /// y utiliza la parte decimal para controlar la opacidad y el tamaño del mismo. </summary>
     public void EditCountDown(float t)
     {
         double cd = Math.Ceiling(t);
@@ -162,6 +182,7 @@ public class UIManager : MonoBehaviour
         textCountDown.fontSize = (int)(100*(ratio+0.5f));
     }
 
+    /// <summary> [TO-DO] Función que todavía no se usa para nada. </summary>
     public void SetBackwardsText(float t)
     {
         float cd = t/1;
@@ -171,19 +192,22 @@ public class UIManager : MonoBehaviour
         textCountDown.color = color;
     }
 
+    /// <summary> Función que asigna al texto de las posiciones un valor. </summary>
     public void SetTextPosition(string text)
     {
         textPosition.text = text;
     }
 
+    /// <summary> Función que asigna un valor (entre 1 y el número máximo de vueltas) al texto que muestra las vueltas que lleva el jugador. </summary>
     public void SetLap(int lap)
     {
         if (lap < 1) lap = 1;
         if (lap > 3) lap = 3;
 
-        textLaps.text = lap + "/3";
+        textLaps.text = "Lap: " + lap + "/3";
     }
 
+    /// <summary> Función que muestra en la interfaz el tiempo de la vuelta anterior y el tiempo actual. </summary>
     public void SetCurTime(PlayerInfo player, TimeSpan curTime)
     {
         TimeSpan ts;
@@ -203,11 +227,13 @@ public class UIManager : MonoBehaviour
         totalTimeText.text = String.Format("{0:00}:{1:00}.{2:000}", curTime.Minutes, curTime.Seconds, curTime.Milliseconds);
     }
 
+    /// <summary> Función que activa el objeto FadeOut. </summary>
     public void FadeOut()
     {
         fade.gameObject.SetActive(true);
     }
 
+    /// <summary> Función que activa la interfaz de la pantalla de puntuaciones. </summary>
     public void SetEndingUI()
     {
         mainMenu.SetActive(false);
@@ -216,6 +242,7 @@ public class UIManager : MonoBehaviour
         serverHUD.SetActive(false);
     }
 
+    /// <summary> Función que actualiza el valor de las puntuaciones al final de la partida. </summary>
     public void SetScores(string names, string[] laps, string bestLap, string total)
     {
         endNames.text = names;
@@ -224,17 +251,21 @@ public class UIManager : MonoBehaviour
         endTotal.text = total;
         m_EndLapController.SetLap(laps);
     }
+
+    /// <summary> Función que vuelve a mostrar la pantalla tras un FadeOut. </summary>
     public void FadeIn()
     {
         fade.GetComponent<Animator>().SetTrigger("FadeIn");
     }
 
+    /// <summary> Función que resetea el juego: Destruye el NetworkManager y recarga la escena. </summary>
     public void ResetGame()
     {
         Destroy(m_NetworkManager.gameObject);
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
+    /// <summary> Función que actualiza la interfaz de intento de conexión según el número de puntos calculado por la task anterior. </summary>
     private void UpdateDots()
     {
         string dotString = "";
@@ -250,6 +281,8 @@ public class UIManager : MonoBehaviour
         }
         waitingText.text = dotString;
     }
+
+    /// <summary> Función que activa la interfaz que indica que se ha perdido la conexión con el servidor. </summary>
     public void ServerCrashMessage()
     {
         ToggleWaitingHUD(true);
@@ -257,26 +290,35 @@ public class UIManager : MonoBehaviour
         waitingText.text = "Lost connection";
     }
 
+    /// <summary> Función que activa el panel de confirmación de abandonar la partida. </summary>
     public void OnButtonQuitGame()
     {
         quitButton.SetActive(false);
         quitConfirmationPanel.SetActive(true);
     }
+
+    /// <summary> Función que desactiva el panel de confirmación de abandonar la partida. </summary>
     public void OnButtonCancelQuit()
     {
         quitButton.SetActive(true);
         quitConfirmationPanel.SetActive(false);
     }
+
+    /// <summary> Función que activa el panel de confirmación de cerrar el servidor. </summary>
         public void OnButtonQuitServer()
     {
         quitButtonServer.SetActive(false);
         quitConfirmationPanelServer.SetActive(true);
     }
+    
+    /// <summary> Función que desactiva el panel de confirmación de cerrar el servidor. </summary>
     public void OnButtonCancelQuitServer()
     {
         quitButtonServer.SetActive(true);
         quitConfirmationPanelServer.SetActive(false);
     }
+    
+    /// <summary> Función que para el cliente y el servidor, si están activos, y resetea el juego. </summary>
     public void OnButtonConfirmQuit()
     {
         NetworkManager.singleton.StopClient();

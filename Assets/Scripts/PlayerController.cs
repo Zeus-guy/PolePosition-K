@@ -8,6 +8,7 @@ using Mirror;
 	API Reference: https://mirror-networking.com/docs/api/Mirror.NetworkBehaviour.html
 */
 
+/// <summary> Clase que se ocupa de todo lo relacionado con el control del coche. </summary>
 public class PlayerController : NetworkBehaviour
 {
     #region Variables
@@ -67,17 +68,17 @@ public class PlayerController : NetworkBehaviour
         m_UIManager = FindObjectOfType<UIManager>();
     }
 
+    /// <summary> En Update se toman los inputs del jugador y se guardan en las variables correspondientes. </summary>
     public void Update()
     {
         InputAcceleration = Input.GetAxis("Vertical");
         InputSteering = Input.GetAxis(("Horizontal"));
         InputBrake = Input.GetAxis("Jump");
         Speed = m_Rigidbody.velocity.magnitude;
-
-        
-
     }
 
+    /// <summary> En FixedUpdate se actualizan las físicas según los valores tomados anteriormente de los inputs. 
+    /// <para> También se devuelve al jugador al último checkpoint por el que ha pasado si lleva demasiado tiempo sin poder moverse o tocando la hierba. </para></summary>
     public void FixedUpdate()
     {
         InputSteering = Mathf.Clamp(InputSteering, -1, 1);
@@ -173,7 +174,7 @@ public class PlayerController : NetworkBehaviour
         }
     }
 
-// this is used to add more grip in relation to speed
+    // this is used to add more grip in relation to speed
     private void AddDownForce()
     {
         foreach (var axleInfo in axleInfos)
@@ -190,8 +191,8 @@ public class PlayerController : NetworkBehaviour
             m_Rigidbody.velocity = topSpeed * m_Rigidbody.velocity.normalized;
     }
 
-// finds the corresponding visual wheel
-// correctly applies the transform
+    // finds the corresponding visual wheel
+    // correctly applies the transform
     public void ApplyLocalPositionToVisuals(WheelCollider col)
     {
         if (col.transform.childCount == 0)
@@ -208,6 +209,8 @@ public class PlayerController : NetworkBehaviour
         myTransform.rotation = rotation;
     }
 
+    /// <summary> En la función SteerHelper, se comprueba si o el coche está tumbado o no puede moverse, o si alguna rueda no está tocando el suelo o está tocando la hierba. 
+    /// <para>Si se da alguna de esas situaciones, se decrementa un contador según el tiempo transcurrido desde la anterior llamada a la función. Si no, se resetea a su valor máximo. </para></summary>
     private void SteerHelper()
     {
         foreach (var axleInfo in axleInfos)
@@ -217,17 +220,16 @@ public class PlayerController : NetworkBehaviour
             axleInfo.rightWheel.GetGroundHit(out wheelHit[1]);
             foreach (var wh in wheelHit)
             {
-                //Debug.Log(wh.collider);
                 if (wh.normal == Vector3.zero || wh.collider == null || (wh.collider != null && wh.collider.name == "grass"))
                 {
                     currentDownTime -= Time.fixedDeltaTime;
                     return; // wheels arent on the ground so dont realign the rigidbody velocity
                 }
             }
-                    currentDownTime = maxDownTime;
+            currentDownTime = maxDownTime;
         }
 
-// this if is needed to avoid gimbal lock problems that will make the car suddenly shift direction
+        // this if is needed to avoid gimbal lock problems that will make the car suddenly shift direction
         if (Mathf.Abs(CurrentRotation - transform.eulerAngles.y) < 10f)
         {
             var turnAdjust = (transform.eulerAngles.y - CurrentRotation) * m_SteerHelper;
@@ -238,8 +240,12 @@ public class PlayerController : NetworkBehaviour
         CurrentRotation = transform.eulerAngles.y;
     }
 
-    #endregion
-
+    /// <summary> Función que se ejecuta cuando el coche pasa por algún checkpoint.
+    /// Si toca el siguiente checkpoint, se incrementa el contador de checkpoints y se guarda como el mayor checkpoint hasta el momento.
+    ///Además, al pasar por el checkpoint 1, se modifica el valor de un booleano que indica que se puede cambiar de vuelta.
+    /// <para>Si toca el anterior checkpoint, el contador interno que maneja el retorno al último checkpoint pasa a valer 0, 
+    /// por lo que se teletransportará inmediatamente al jugador. Si el checkpoint en el que estaba antes no era el 1, se decrementa ese contador.</para>
+    /// Esto sirve para que no puedas pasar del checkpoint 1 al 0, con lo que se evita que el jugador haga trampas.</summary>
     void OnTriggerEnter(Collider col)
     {
         int nextCheckPoint = (m_PlayerInfo.CheckPoint + 1) % 6;
@@ -254,20 +260,13 @@ public class PlayerController : NetworkBehaviour
         }
         else if (int.Parse(col.name) == previousCheckPoint)
         {
-            m_Rigidbody.velocity = Vector3.zero;
-            this.gameObject.transform.position = checkPoints[m_PlayerInfo.LastCheckPoint].position;
-            this.gameObject.transform.eulerAngles = checkPoints[m_PlayerInfo.LastCheckPoint].eulerAngles;
+            currentDownTime = 0;
             if (m_PlayerInfo.CheckPoint != 1)
                 m_PlayerInfo.CheckPoint = previousCheckPoint;
         }
     }
-
-    [Command]
-    public void CmdUpdateArcLength(float newArcL)
-    {
-        arcLength = newArcL;
-    }
-
+    /// <summary> Hook que se activará en los clientes cuando cambie el valor de la vuelta del jugador.
+    /// <para> Sirve para asignar el valor correcto de la vuelta actual al PlayerInfo del jugador correspondiente, y para actualizar la interfaz. </para> </summary>
     public void ChangeLapHook(int oldLap, int newLap)
     {
         m_PlayerInfo.CurrentLap = newLap;
@@ -276,11 +275,23 @@ public class PlayerController : NetworkBehaviour
             m_UIManager.SetLap(newLap);
     }
 
+    #endregion
+
+    #region Commands
+    /// <summary> Comando que actualiza el valor de arcLength. </summary>
+    [Command]
+    public void CmdUpdateArcLength(float newArcL)
+    {
+        arcLength = newArcL;
+    }
+
+    /// <summary> Comando que incrementa el valor de CurrentLap. </summary>
     [Command]
     public void CmdIncreaseLap()
     {
         CurrentLap++;
     }
+    /// <summary> Comando que guarda el tiempo de la vuelta indicada. </summary>
     [Command]
     public void CmdChangeTimes(int lap, long time)
     {
@@ -297,4 +308,5 @@ public class PlayerController : NetworkBehaviour
                 break;
         }
     }
+    #endregion
 }

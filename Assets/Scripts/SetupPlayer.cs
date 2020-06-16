@@ -9,6 +9,7 @@ using TMPro;
 	API Reference: https://mirror-networking.com/docs/api/Mirror.NetworkBehaviour.html
 */
 
+/// <summary> Esta clase sirve para inicializar la información de cada jugador. </summary>
 public class SetupPlayer : NetworkBehaviour
 {
     [SyncVar] private int m_ID;
@@ -45,12 +46,6 @@ public class SetupPlayer : NetworkBehaviour
             m_PlayerInfo.ID = m_ID;
             m_PlayerInfo.controller = m_PlayerController;
 
-            //Asignación del nombre del jugador
-            //SetName("", m_Name);
-
-            //SetColour(0, m_Colour);
-            
-            //m_PlayerController.CurrentLap = 0;
             m_PolePositionManager.AddPlayer(m_PlayerInfo);
             m_PlayerInfo.CheckPoint = 0;
             m_PlayerInfo.CanChangeLap = true;
@@ -72,34 +67,34 @@ public class SetupPlayer : NetworkBehaviour
 
         SetColour(0, m_Colour);
         
-        //m_PlayerController.CurrentLap = 0;
         m_PolePositionManager.AddPlayer(m_PlayerInfo);
         m_PlayerInfo.CheckPoint = 0;
         m_PlayerInfo.CanChangeLap = true;
     }
 
-    //Manda el nombre al servidor
+    /// <summary> Comando que cambia el nombre del jugador. </summary>
     [Command]
     private void CmdChangeName(string name)
     {
-        //GetComponent<NetworkIdentity>().AssignClientAuthority(this.GetComponent<NetworkIdentity>().connectionToClient);
         m_Name = name;
         SetName("",name);
     }
-    //Manda el color al servidor
+    
+    /// <summary> Comando que cambia el color del coche del jugador. </summary>
     [Command]
     private void CmdChangeColour(int color)
     {
-        //GetComponent<NetworkIdentity>().AssignClientAuthority(this.GetComponent<NetworkIdentity>().connectionToClient);
         m_Colour = color;
         SetColour(0,color);
     }
 
+    /// <summary> Hook que cambia el nombre del jugador en su PlayerInfo. </summary>
     private void SetName(string oldName, string newName)
     {
         m_PlayerInfo.Name = newName;
     }
 
+    /// <summary> Hook que cambia el color del jugador en su PlayerInfo. </summary>
     private void SetColour(int oldColour, int newColour)
     {
         Material[] materiales = CarSkin.materials;
@@ -165,12 +160,11 @@ public class SetupPlayer : NetworkBehaviour
         m_UIManager = FindObjectOfType<UIManager>();
     }
 
-    // Start is called before the first frame update
+    /// <summary> En Start, si es el jugador local, se configura la cámara y se activa el PlayerController si ya ha terminado la cuenta atrás. </summary>
     void Start()
     {
         if (isLocalPlayer)
         {
-            //m_PolePositionManager.barrier.SignalAndWait();
             if (m_PolePositionManager.countdownStarted)
                 {
                     m_PlayerController.enabled = true;
@@ -181,20 +175,23 @@ public class SetupPlayer : NetworkBehaviour
         }
     }
 
+    /// <summary> Función que habilita el PlayerController del jugador. </summary>
     public void StartGame()
     {
         m_PlayerController.enabled = true;
     }
 
+    /// <summary> Función que deshabilita el PlayerController del jugador e indica que la partida ha finalizado. </summary>
     public void EndGame()
     {
         m_PlayerController.enabled = false;
         gameEnded = true;
     }
     
+    /// <summary> Cuando se destruye el objeto, si no ha terminado la partida, es porque se ha perdido la conexión con el servidor.
+    /// En ese caso, se deshabilita su PlayerController y se muestra un mensaje de error por la interfaz. </summary>
     void OnDestroy()
     {
-        print("me estoy destruyendo");
         if (!gameEnded && isLocalPlayer)
         {
             m_PlayerController.enabled = false;
@@ -202,11 +199,13 @@ public class SetupPlayer : NetworkBehaviour
         }
     }
 
+    /// <summary> Función llamada por el delegado de cambio de velocidad que actualiza la interfaz. </summary>
     void OnSpeedChangeEventHandler(float speed)
     {
         m_UIManager.UpdateSpeed((int) speed * 5); // 5 for visualization purpose (km/h)
     }
 
+    /// <summary> Función que configura la cámara. </summary>
     void ConfigureCamera()
     {
         if (Camera.main != null) 
@@ -216,15 +215,19 @@ public class SetupPlayer : NetworkBehaviour
         }
     }
 
+    /// <summary> Función que devuelve una referencia al PlayerInfo del jugador. </summary>
     public PlayerInfo GetPlayerInfo()
     {
         return m_PlayerInfo;
     }
 
+    /// <summary> Función que sirve para asignar el array de checkpoints de PlayerController. </summary>
     public void SetCheckPoints(Transform[] checkpoints)
     {
         m_PlayerController.checkPoints = (Transform[])checkpoints.Clone();
     }
+    
+    /// <summary> Comando que se ocupa del final de la partida. </summary>
     [Command]
     public void CmdFinishGame()
     {

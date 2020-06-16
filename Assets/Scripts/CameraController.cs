@@ -18,13 +18,13 @@ public class CameraController : MonoBehaviour
     private Camera mainCamera;
     public PlayerInfo playerInfo;
 
-    // Start is called before the first frame update
     void Start()
     {
         mainCamera = this.GetComponent<Camera>();
     }
 
-    // Update is called once per frame
+    /// <summary> Para no calcular constantemente la posición del usuario para utilizar sólo el valor de segIdx, 
+    /// lo leemos del jugador y lo guardamos en él cuando se hacen los cálculos del arcLength en PolePositionManager.</summary>
     void Update()
     {
         if (m_Focus != null)
@@ -35,14 +35,6 @@ public class CameraController : MonoBehaviour
                 {
                     this.m_Direction = new Vector3(0f, -1f, 0f);
                 }
-
-                /*int segIdx;
-                float carDist;
-                Vector3 carProj;
-
-                m_Circuit.ComputeClosestPointArcLength(m_Focus.transform.position, out segIdx, out carProj,
-                    out carDist);*/
-
 
                 Vector3 pathDir = -m_Circuit.GetSegment(playerInfo.segIdx);
                 pathDir = new Vector3(pathDir.x, 0f, pathDir.z);

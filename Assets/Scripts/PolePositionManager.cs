@@ -8,30 +8,30 @@ using System.Threading;
 using System.Diagnostics;
 using UnityEngine.UI;
 
+/// <summary> Clase que maneja casi toda la lógica interna del juego. </summary>
 public class PolePositionManager : NetworkBehaviour
 {
-    public int numPlayers;
+    //public int numPlayers;
+    public readonly float MAXCOUNTDOWN = 3;
     public CustomNetworkManager networkManager;
     public UIManager UI_m;
     public Transform cameraPosition;
+    public float countdown;
+    public bool gameStarted, timerStarted;
+    public Transform[] checkPoints;
+    public Dropdown Drop_Players;
 
     private readonly List<PlayerInfo> m_Players = new List<PlayerInfo>(4);
     private CircuitController m_CircuitController;
     private GameObject[] m_DebuggingSpheres;
-    public readonly float MAXCOUNTDOWN = 3;
-    public float countdown;
-    public bool gameStarted, timerStarted;
-    [SyncVar] public bool countdownStarted;
     private SetupPlayer m_LocalSetupPlayer;
-
     private Stopwatch timer;
-
-    [SyncVar] public int Player_Count = 1;
-    public Transform[] checkPoints;
     private int oldPlayersLeft = -1;
-    public Dropdown Drop_Players;
-    
 
+    [SyncVar] public bool countdownStarted;
+    [SyncVar] public int Player_Count = 1;
+    
+    /// <summary> En Awake se asigna al countdown inicial su valor máximo, y se inicializa timer como un objeto de la clase Stopwatch. </summary>
     private void Awake()
     {
         countdown = MAXCOUNTDOWN;
@@ -47,15 +47,11 @@ public class PolePositionManager : NetworkBehaviour
         }
         timer = new Stopwatch();
     }
-
+    
+    /// <summary> En Update, si la partida no ha comenzado, se muestra un texto si faltan jugadores o se actualiza la cuenta atrás una vez están todos conetados.
+    /// <para> Además, se llama a la función UpdateRaceProgress. </para> </summary>
     private void Update()
     {
-        /*if (countdown < MAXCOUNTDOWN && m_Players.Count <= 1 && Player_Count > 1)
-        {
-            FinishGame();
-            return;
-        }*/
-
         if (!gameStarted)
         {
             if (m_Players.Count <= Player_Count-1 && countdown >= MAXCOUNTDOWN)
@@ -66,7 +62,6 @@ public class PolePositionManager : NetworkBehaviour
                     oldPlayersLeft = playersLeft;
                     UI_m.SetCountDown("Waiting for " + playersLeft + "\n"+" player" + ((playersLeft == 1)?"":"s"));
                 }
-                //return;
             }
 
             else if (countdown > -1.5)
@@ -95,28 +90,23 @@ public class PolePositionManager : NetworkBehaviour
                 gameStarted = true;
             }
         }
-        
-
         UpdateRaceProgress();
     }
 
-    [ClientRpc]
-    void RpcStartGame()
-    {
-        m_LocalSetupPlayer.StartGame();
-        timer.Start();
-    }
-
+    /// <summary> Añade un PlayerInfo a m_Players. </summary>
     public void AddPlayer(PlayerInfo player)
     {
         m_Players.Add(player);
     }
+
+    /// <summary> Asigna la referencia al SetupPlayer que representa al jugador local. </summary>
     public void SetLocalPlayer(SetupPlayer sp)
     {
         m_LocalSetupPlayer = sp;
         m_LocalSetupPlayer.SetCheckPoints(checkPoints);
     }
 
+    /// <summary> Clase que sirve para comparar objetos de la clase PlayerInfo utilizando floats. </summary>
     private class PlayerInfoComparer : Comparer<PlayerInfo>
     {
         float[] m_ArcLengths;
@@ -133,11 +123,10 @@ public class PolePositionManager : NetworkBehaviour
             else return -1;
         }
     }
-
+    
+    /// <summary> Toma un array ordenado y lo muestra por pantalla. </summary>
     public void UpdateRaceProgress()
     {
-        
-
         PlayerInfo[] arr = SortPlayers();
 
         string myRaceOrder = "";
@@ -150,26 +139,19 @@ public class PolePositionManager : NetworkBehaviour
         
         if (m_LocalSetupPlayer != null)
         {
-            //UI_m.SetLap(m_LocalSetupPlayer.GetLap());
             UI_m.SetCurTime(m_LocalSetupPlayer.GetPlayerInfo(), timer.Elapsed);
-            //m_LocalSetupPlayer.SetCheckPoints(checkPoints);
         }
-
-        //Debug.Log("El orden de carrera es: " + myRaceOrder);
     }
 
+    /// <summary> Calcula la posición del jugador en el recorrido si es el jugador local, y la toma directamente si se trata de otro jugador.
+    /// <para> En caso de que un jugador se haya desconectado, devuelve un valor para indicar que ese jugador debe ser eliminado. </para> </summary>
     float ComputeCarArcLength(int ID)
     {
-        /*if (!isClient)
-        {
-            return -999990;
-        }*/
         // Compute the projection of the car position to the closest circuit 
         // path segment and accumulate the arc-length along of the car along
         // the circuit.
         if (this.m_Players[ID] == null)
         {
-            //m_LocalSetupPlayer.m_PlayerController.CmdUpdateArcLength(-999999);
             return -999999;
         }
         else if (m_LocalSetupPlayer != null)
@@ -212,7 +194,6 @@ public class PolePositionManager : NetworkBehaviour
 
         if (isBehind)
         {
-            //print(minArcL);
             if (this.m_Players[ID].controller.CurrentLap-1 == 0)
             {
                 minArcL -= m_CircuitController.CircuitLength;
@@ -222,7 +203,6 @@ public class PolePositionManager : NetworkBehaviour
                 minArcL += m_CircuitController.CircuitLength * (m_Players[ID].controller.CurrentLap - 2);
             
             }    
-            //print(minArcL);    
         }
         else if (this.m_Players[ID].controller.CurrentLap == 0)
         {
@@ -234,15 +214,16 @@ public class PolePositionManager : NetworkBehaviour
                        (m_Players[ID].controller.CurrentLap - 1);
         }
 
-
         //Command para que el server asigne la SyncVar minArcL
         m_LocalSetupPlayer.m_PlayerController.CmdUpdateArcLength(minArcL);
         return minArcL;
 
     }
+    
+    /// <summary> Función que, si el jugador puede cambiar de vuelta y está en el checkpoint 0, incrementa en 1 el contador de vueltas, 
+    /// guarda los tiempos necesarios, y finaliza la partida si ha terminado la última vuelta. </summary>
     public void changeLap(PlayerInfo player)
     {
-        //print(player.Name + ": checkpoint " + player.CheckPoint + ", vuelta " + player.CurrentLap + ", puede cambiar? " + player.CanChangeLap + ", dist: " + dist);
         if (player.CanChangeLap)
         {
             if (player.CheckPoint == 0)
@@ -262,7 +243,6 @@ public class PolePositionManager : NetworkBehaviour
                         break;
                         
                     case 3:
-                        print("venga vamos aqui entramos");
                         timer.Stop();
                         if (player.controller.isLocalPlayer)
                             player.controller.CmdChangeTimes(2, timer.Elapsed.Ticks);
@@ -276,11 +256,11 @@ public class PolePositionManager : NetworkBehaviour
                     player.controller.CmdIncreaseLap();
                     player.CanChangeLap = false;
                 }
-                //player.CanChangeLap = false;
             }
         }
     }
     
+    /// <summary> Función que se ocupa de que tanto servidor como clientes terminen la partida correctamente. </summary>
     public void FinishGame()
     {
         if (isServerOnly)
@@ -294,15 +274,9 @@ public class PolePositionManager : NetworkBehaviour
         }
     }
 
-    [ClientRpc]
-    public void RpcFinishGame()
-    {
-        m_LocalSetupPlayer.EndGame();
 
-        UI_m.FadeOut();
-        
-    }
-
+    /// <summary> Función que se ejecuta tras el fadeout y que activa la interfaz de la pantalla final. 
+    /// <para> En el caso del servidor, calcula además los tiempos de todos los jugadores y los envía a todos los clientes. </para> </summary>
     public void PostFadeOut()
     {
         UI_m.SetEndingUI();
@@ -372,7 +346,6 @@ public class PolePositionManager : NetworkBehaviour
                     bt = "--:--.---";
                 }
                     
-
                 names = names + p.Name + "\n\n";
                 lap1 = lap1 + t1 + "\n\n";
                 lap2 = lap2 + t2 + "\n\n";
@@ -388,14 +361,10 @@ public class PolePositionManager : NetworkBehaviour
             RpcChangeScores(names, laps, bestLap, total);
             if (isServerOnly)
                 ChangeScores(names, laps, bestLap, total);
-            //NetworkManager.singleton.StopServer();
         }
     }
-    [ClientRpc]
-    void RpcChangeScores(string names, string[] laps, string bestLap, string total)
-    {
-        ChangeScores(names, laps, bestLap, total);
-    }
+
+    /// <summary> Función que actualiza los valores de la interfaz del final de la partida, y que para al cliente/servidor local, si existe. </summary>
     private void ChangeScores(string names, string[] laps, string bestLap, string total)
     {
         UI_m.SetEndingUI();
@@ -406,6 +375,7 @@ public class PolePositionManager : NetworkBehaviour
         }
         if(isServer)
             NetworkManager.singleton.StopServer();
+
         //Mover la cámara del jugador a donde toca
         cameraPosition.position = new Vector3(0,2.82f,-10);
         cameraPosition.localEulerAngles = Vector3.zero;
@@ -414,6 +384,8 @@ public class PolePositionManager : NetworkBehaviour
         UI_m.FadeIn();
     }
 
+    /// <summary> Función que devuelve un array de jugadores ordenado.
+    /// <para> Si se ha detectado que falta un jugador, se elimina de la lista. </para> </summary>
     private PlayerInfo[] SortPlayers()
     {
         // Update car arc-lengths
@@ -421,8 +393,7 @@ public class PolePositionManager : NetworkBehaviour
 
         for (int i = 0; i < m_Players.Count; ++i)
         {
-            arcLengths[i] = /*m_Players[i].controller.arcLength;*/ComputeCarArcLength(i);
-            //changeLap(m_Players[i], arcLengths[i]);
+            arcLengths[i] = ComputeCarArcLength(i);
         }
 
         int newId = 0;
@@ -439,22 +410,52 @@ public class PolePositionManager : NetworkBehaviour
             }
         }
 
-        //m_Players.Sort(new PlayerInfoComparer(arcLengths));
         PlayerInfo[] arr = m_Players.ToArray();
         Array.Sort(arr, new PlayerInfoComparer(arcLengths));
         return arr;
     }
 
+    /// <summary> Cuando se inicia el servidor, se asigna el número máximo de jugadores previamente seleccionado por el host. </summary>
     public override void OnStartServer()
     {
-        
         Player_Count = Drop_Players.value+2;
         Drop_Players.gameObject.SetActive(false);
     }
+
+    /// <summary> Cuando se inicia el cliente, se desactiva la interfaz de espera. </summary>
     public override void OnStartClient()
     {
         UI_m.ToggleWaitingHUD(false);
         Drop_Players.gameObject.SetActive(false);
     }
+
+    #region ClientRpcs
+
+    /// <summary> Activa el PlayerController de todos los clientes e inicia el temporizador. </summary>
+    [ClientRpc]
+    void RpcStartGame()
+    {
+        m_LocalSetupPlayer.StartGame();
+
+        timer.Start();
+    }
+
+    /// <summary> Desactiva el PlayerController de todos los clientes e inicia el FadeOut. </summary>
+    [ClientRpc]
+    public void RpcFinishGame()
+    {
+        m_LocalSetupPlayer.EndGame();
+
+        UI_m.FadeOut();
+    }    
+    
+    /// <summary> Asigna los valores de la pantalla de puntuaciones a todos los clientes. </summary>
+    [ClientRpc]
+    void RpcChangeScores(string names, string[] laps, string bestLap, string total)
+    {
+        ChangeScores(names, laps, bestLap, total);
+    }
+
+    #endregion
 
 }

@@ -4,45 +4,20 @@ using UnityEngine;
 using Mirror;
 //using UnityEngine.SceneManagement;
 
+/// <summary> Clase que hereda de NetworkManager y que se ocupa del comportamiento del servidor cuando se queda un jugador sólo en la partida. </summary>
 public class CustomNetworkManager : NetworkManager
 {
     public PolePositionManager polePositionManager;
-    public override void OnServerConnect(NetworkConnection conn)
-    {
-        base.OnServerConnect(conn);
-        print("Se unio alguien. Ahora son " + numPlayers);
-    }
+
+    /// <summary> Override de la función OnServerDisconnect de la clase NetworkManager.
+    /// <para> Cuando detecta que sólo queda un jugador en una partida ya comenzada que admite más de un jugador, la finaliza prematuramente.</para>
+    /// </summary>
     public override void OnServerDisconnect(NetworkConnection conn)
     {
         base.OnServerDisconnect(conn);
-        print("Se fue alguien. Ahora son " + numPlayers + ". esto viene de " + conn.connectionId);
-        if (numPlayers == 1 && polePositionManager != null && (polePositionManager.countdown < polePositionManager.MAXCOUNTDOWN))
+        if (numPlayers == 1 && polePositionManager != null && (polePositionManager.countdown < polePositionManager.MAXCOUNTDOWN) && polePositionManager.Player_Count > 1)
         {
             polePositionManager.FinishGame();
         }
-
-        //print("Se fue alguien. Ahora son " + numPlayers);
-        /*if (numPlayers == 0)
-        {
-            StopServer();
-        }*/
     }
-    /*public override void OnStopServer()
-    {
-        base.OnStopServer();
-        //Destroy(this.gameObject); //No tan importante destruirlo porque total se va a destruir cuando vea que hay uno nuevo o igual no eh
-    }*/
-    /*public override void OnDestroy()
-    {
-        base.OnDestroy();
-        //StopServer(); //No se si funcionará bien con server only
-        //SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-    }*/
-
-    /*public override void OnClientDisconnect(NetworkConnection conn)
-    {
-        base.OnClientDisconnect(conn);
-        StopServer();
-    }*/
-
 }
