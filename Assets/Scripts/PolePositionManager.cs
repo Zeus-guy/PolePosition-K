@@ -11,15 +11,15 @@ using UnityEngine.UI;
 public class PolePositionManager : NetworkBehaviour
 {
     public int numPlayers;
-    public NetworkManager networkManager;
+    public CustomNetworkManager networkManager;
     public UIManager UI_m;
     public Transform cameraPosition;
 
     private readonly List<PlayerInfo> m_Players = new List<PlayerInfo>(4);
     private CircuitController m_CircuitController;
     private GameObject[] m_DebuggingSpheres;
-    private const float MAXCOUNTDOWN = 3;
-    private float countdown = MAXCOUNTDOWN;
+    public readonly float MAXCOUNTDOWN = 3;
+    public float countdown;
     public bool gameStarted, timerStarted;
     [SyncVar] public bool countdownStarted;
     private SetupPlayer m_LocalSetupPlayer;
@@ -34,7 +34,9 @@ public class PolePositionManager : NetworkBehaviour
 
     private void Awake()
     {
-        if (networkManager == null) networkManager = FindObjectOfType<NetworkManager>();
+        countdown = MAXCOUNTDOWN;
+        if (networkManager == null) networkManager = FindObjectOfType<CustomNetworkManager>();
+        networkManager.polePositionManager = this;
         if (m_CircuitController == null) m_CircuitController = FindObjectOfType<CircuitController>();
 
         m_DebuggingSpheres = new GameObject[networkManager.maxConnections];
@@ -48,11 +50,11 @@ public class PolePositionManager : NetworkBehaviour
 
     private void Update()
     {
-        if (countdown < MAXCOUNTDOWN && m_Players.Count <= 1 && Player_Count > 1)
+        /*if (countdown < MAXCOUNTDOWN && m_Players.Count <= 1 && Player_Count > 1)
         {
             FinishGame();
             return;
-        }
+        }*/
 
         if (!gameStarted)
         {
@@ -159,7 +161,9 @@ public class PolePositionManager : NetworkBehaviour
     float ComputeCarArcLength(int ID)
     {
         if (!isClient)
+        {
             return -999990;
+        }
         // Compute the projection of the car position to the closest circuit 
         // path segment and accumulate the arc-length along of the car along
         // the circuit.
@@ -270,7 +274,7 @@ public class PolePositionManager : NetworkBehaviour
         }
     }
     
-    private void FinishGame()
+    public void FinishGame()
     {
         m_LocalSetupPlayer.CmdFinishGame();
     }
@@ -365,7 +369,7 @@ public class PolePositionManager : NetworkBehaviour
             laps[0] = lap1;
             laps[1] = lap2;
             laps[2] = lap3;
-
+            
             RpcChangeScores(names, laps, bestLap, total);
             //NetworkManager.singleton.StopServer();
         }
@@ -373,11 +377,16 @@ public class PolePositionManager : NetworkBehaviour
     [ClientRpc]
     void RpcChangeScores(string names, string[] laps, string bestLap, string total)
     {
+        print("hola buenas: " + isClient + ", " + isClientOnly + ", " + isServer + ", " + isServerOnly);
         UI_m.SetEndingUI();
         UI_m.SetScores(names, laps, bestLap, total);
         if (isClient)
         {
+            print("hasta luego crack");
             NetworkManager.singleton.StopClient();
+            if(isServer)
+                NetworkManager.singleton.StopServer();
+
         }
         //Mover la cámara del jugador a donde toca
         cameraPosition.position = new Vector3(0,2.82f,-10);

@@ -177,14 +177,11 @@ public class SetupPlayer : NetworkBehaviour
     
     void OnDestroy()
     {
+        print("me estoy destruyendo");
         if (!gameEnded && isLocalPlayer)
         {
             m_PlayerController.enabled = false;
             m_UIManager.ServerCrashMessage();
-        }
-        if (NetworkManager.singleton.numPlayers <= 0)
-        {
-            NetworkManager.singleton.StopServer();
         }
     }
 
@@ -201,11 +198,6 @@ public class SetupPlayer : NetworkBehaviour
             Camera.main.gameObject.GetComponent<CameraController>().playerInfo = m_PlayerInfo;
         }
     }
-
-    /*public int GetLap()
-    {
-        return m_PlayerInfo.CurrentLap;
-    }*/
 
     public PlayerInfo GetPlayerInfo()
     {
