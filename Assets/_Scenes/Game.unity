@@ -11694,7 +11694,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1691261548
 RectTransform:
   m_ObjectHideFlags: 0
@@ -12629,15 +12629,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
-  numPlayers: 0
   networkManager: {fileID: 0}
   UI_m: {fileID: 1823041897}
   cameraPosition: {fileID: 372009860}
   countdown: 0
   gameStarted: 0
   timerStarted: 0
-  countdownStarted: 0
-  Player_Count: 1
   checkPoints:
   - {fileID: 1790719546}
   - {fileID: 61111091}
@@ -12646,6 +12643,8 @@ MonoBehaviour:
   - {fileID: 1202054533}
   - {fileID: 1751108167}
   Drop_Players: {fileID: 746536325}
+  countdownStarted: 0
+  Player_Count: 1
 --- !u!4 &1839589614
 Transform:
   m_ObjectHideFlags: 0

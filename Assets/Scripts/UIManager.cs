@@ -120,6 +120,7 @@ public class UIManager : MonoBehaviour
     public void ToggleWaitingHUD(bool state)
     {
         waitingBox.SetActive(state);
+        quitButton.SetActive(!state);
     }
 
     /// <summary> Función que inicia un host, que funciona como servidor y cliente simultáneamente. </summary>
