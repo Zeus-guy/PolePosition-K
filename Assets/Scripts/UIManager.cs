@@ -208,24 +208,16 @@ public class UIManager : MonoBehaviour
         textLaps.text = "Lap: " + lap + "/3";
     }
 
-    /// <summary> Función que muestra en la interfaz el tiempo de la vuelta anterior y el tiempo actual. </summary>
-    public void SetCurTime(PlayerInfo player, TimeSpan curTime)
+    /// <summary> Función que muestra en la interfaz el tiempo actual. </summary>
+    public void SetCurTime(TimeSpan curTime)
     {
-        TimeSpan ts;
-        switch (player.controller.CurrentLap)
-        {
-            case 2:
-                ts = player.time1;
-                curTimeText.text = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds);
-                break;
-                
-            case 3:
-                ts = player.time2 - player.time1;
-                curTimeText.text = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds);
-                break;
-            
-        }
         totalTimeText.text = String.Format("{0:00}:{1:00}.{2:000}", curTime.Minutes, curTime.Seconds, curTime.Milliseconds);
+    }
+    
+    /// <summary> Función que muestra en la interfaz el tiempo de la vuelta anterior. </summary>
+    public void SetLapTime(TimeSpan curTime)
+    {
+        curTimeText.text = String.Format("{0:00}:{1:00}.{2:000}", curTime.Minutes, curTime.Seconds, curTime.Milliseconds);
     }
 
     /// <summary> Función que activa el objeto FadeOut. </summary>

@@ -103,7 +103,7 @@ public class PolePositionManager : NetworkBehaviour
     public void SetLocalPlayer(SetupPlayer sp)
     {
         m_LocalSetupPlayer = sp;
-        m_LocalSetupPlayer.SetCheckPoints(checkPoints);
+        //m_LocalSetupPlayer.SetCheckPoints(checkPoints);
     }
 
     /// <summary> Clase que sirve para comparar objetos de la clase PlayerInfo utilizando floats. </summary>
@@ -146,7 +146,7 @@ public class PolePositionManager : NetworkBehaviour
         
         if (m_LocalSetupPlayer != null)
         {
-            UI_m.SetCurTime(m_LocalSetupPlayer.GetPlayerInfo(), timer.Elapsed);
+            UI_m.SetCurTime(timer.Elapsed);
         }
     }
 
@@ -241,12 +241,14 @@ public class PolePositionManager : NetworkBehaviour
                         if (player.controller.isLocalPlayer)
                             player.controller.CmdChangeTimes(0, timer.Elapsed.Ticks);
                         player.time1 = timer.Elapsed;
+                        UI_m.SetLapTime(player.time1);
                         break;
                         
                     case 2:
                         if (player.controller.isLocalPlayer)
                             player.controller.CmdChangeTimes(1, timer.Elapsed.Ticks);
                         player.time2 = timer.Elapsed;
+                        UI_m.SetLapTime(player.time2-player.time1);
                         break;
                         
                     case 3:
@@ -254,6 +256,7 @@ public class PolePositionManager : NetworkBehaviour
                         if (player.controller.isLocalPlayer)
                             player.controller.CmdChangeTimes(2, timer.Elapsed.Ticks);
                         player.time3 = timer.Elapsed;
+                        UI_m.SetLapTime(player.time3-player.time2);
                         if (player.controller.isLocalPlayer)
                             FinishGame();
                         break;
@@ -327,7 +330,6 @@ public class PolePositionManager : NetworkBehaviour
 
                 if (p.time2 > zeroTs && p.time3 > zeroTs)
                 {
-                    print("entro aqui");
                     t3 = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds);
                 }
                 else
@@ -340,8 +342,7 @@ public class PolePositionManager : NetworkBehaviour
                 }
                 else
                 {
-                    ts = timer.Elapsed;
-                    tt = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds);
+                    tt = "--:--.---";
                 }
 
                 if (bestTs > zeroTs)

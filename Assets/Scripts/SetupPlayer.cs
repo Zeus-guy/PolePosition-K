@@ -158,6 +158,8 @@ public class SetupPlayer : NetworkBehaviour
         m_NetworkManager = FindObjectOfType<NetworkManager>();
         m_PolePositionManager = FindObjectOfType<PolePositionManager>();
         m_UIManager = FindObjectOfType<UIManager>();
+
+        SetCheckPoints(m_PolePositionManager.checkPoints);
     }
 
     /// <summary> En Start, si es el jugador local, se configura la cámara y se activa el PlayerController si ya ha terminado la cuenta atrás. </summary>
