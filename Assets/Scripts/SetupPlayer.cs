@@ -41,6 +41,9 @@ public class SetupPlayer : NetworkBehaviour
     {
         base.OnStartServer();
         m_ID = connectionToClient.connectionId;
+        if (!isLocalPlayer)
+            m_PlayerController.enabled = true;
+            
         if (isServerOnly)
         {
             m_PlayerInfo.ID = m_ID;
@@ -70,6 +73,14 @@ public class SetupPlayer : NetworkBehaviour
         m_PolePositionManager.AddPlayer(m_PlayerInfo);
         m_PlayerInfo.CheckPoint = 0;
         m_PlayerInfo.CanChangeLap = true;
+        if (isClientOnly)
+        {
+            Rigidbody rb = GetComponent<Rigidbody>();
+            rb.isKinematic = true;
+            rb.freezeRotation = true;
+            rb.constraints = RigidbodyConstraints.FreezeAll;
+
+        }
     }
 
     /// <summary> Comando que cambia el nombre del jugador. </summary>
