@@ -63,11 +63,16 @@ public class PolePositionManager : NetworkBehaviour
                 {
                     oldPlayersLeft = playersLeft;
                     UI_m.SetCountDown("Waiting for " + playersLeft + "\n"+" player" + ((playersLeft == 1)?"":"s"));
+                    if (isServerOnly)
+                        UI_m.UpdateServerRemaining(playersLeft);
                 }
             }
 
             else if (countdown > -1.5)
             {
+                if (isServerOnly)
+                    UI_m.UpdateServerRemaining(0);
+                
                 countdown -= Time.deltaTime;
                 if (countdown > 0)
                     UI_m.EditCountDown(countdown);
@@ -152,8 +157,13 @@ public class PolePositionManager : NetworkBehaviour
             }
 
         }
+        print(myRaceOrder);
         if (updatePosition)
+        {
             UI_m.SetTextPosition(myRaceOrder);
+        }
+        if (isServerOnly)
+            UI_m.UpdateServerNames(myRaceOrder);
         
         if (m_LocalSetupPlayer != null)
         {

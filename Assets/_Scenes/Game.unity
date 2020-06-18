@@ -1265,6 +1265,91 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 155323077}
   m_CullTransparentMesh: 0
+--- !u!1 &161644160
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 161644163}
+  - component: {fileID: 161644162}
+  - component: {fileID: 161644161}
+  m_Layer: 5
+  m_Name: TextNames
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &161644161
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 161644160}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 708705254, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+  m_RaycastTarget: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_FontData:
+    m_Font: {fileID: 12800000, guid: 22f0ce1d6320209428727ceaed067df9, type: 3}
+    m_FontSize: 40
+    m_FontStyle: 0
+    m_BestFit: 0
+    m_MinSize: 2
+    m_MaxSize: 40
+    m_Alignment: 1
+    m_AlignByGeometry: 0
+    m_RichText: 1
+    m_HorizontalOverflow: 1
+    m_VerticalOverflow: 1
+    m_LineSpacing: 1
+  m_Text: 'Player0
+
+    Player3
+
+    Player1
+
+    Paco
+
+'
+--- !u!222 &161644162
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 161644160}
+  m_CullTransparentMesh: 0
+--- !u!224 &161644163
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 161644160}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1804262504}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 73}
+  m_SizeDelta: {x: 0, y: -83}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1001 &174953516
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6151,7 +6236,7 @@ RectTransform:
   m_Children:
   - {fileID: 367655253}
   m_Father: {fileID: 1804262504}
-  m_RootOrder: 2
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -9399,7 +9484,7 @@ RectTransform:
   - {fileID: 1262074730}
   - {fileID: 1784858222}
   m_Father: {fileID: 1804262504}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -12383,6 +12468,7 @@ RectTransform:
   m_Children:
   - {fileID: 116129298}
   - {fileID: 2120708017}
+  - {fileID: 161644163}
   - {fileID: 871356809}
   - {fileID: 1312644673}
   m_Father: {fileID: 1208775211}
@@ -12480,6 +12566,8 @@ MonoBehaviour:
   quitConfirmationPanelServer: {fileID: 1312644672}
   m_PolePositionManager: {fileID: 1839589613}
   serverHUD: {fileID: 1804262503}
+  serverText: {fileID: 2120708018}
+  serverNames: {fileID: 161644161}
 --- !u!4 &1823041898
 Transform:
   m_ObjectHideFlags: 0
@@ -14889,18 +14977,7 @@ MonoBehaviour:
     m_LineSpacing: 1
   m_Text: '<b>SERVER RUNNING</b>
 
-    WAITING FOR N PLAYERS
-
-
-    Player0 (3/3)
-
-    Player3 (3/3)
-
-    Player1 (2/3)
-
-    Paco (0/3)
-
-'
+    WAITING FOR N PLAYERS'
 --- !u!222 &2120708019
 CanvasRenderer:
   m_ObjectHideFlags: 0

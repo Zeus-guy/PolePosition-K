@@ -50,6 +50,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject quitConfirmationPanelServer;
     [SerializeField] private PolePositionManager m_PolePositionManager;
     [SerializeField] private GameObject serverHUD;
+    [SerializeField] private Text serverText;
+    [SerializeField] private Text serverNames;
     #endregion
     private int dots = 0;
 
@@ -318,5 +320,17 @@ public class UIManager : MonoBehaviour
         NetworkManager.singleton.StopClient();
         NetworkManager.singleton.StopServer();
         ResetGame();
+    }
+    public void UpdateServerRemaining(int numPlayers)
+    {
+        string newText = "";
+        if (numPlayers > 0)
+            newText = "WAITING FOR " + numPlayers + " PLAYER" + ((numPlayers == 1)?"":"s");
+        serverText.text = "<b>SERVER RUNNING</b>\n" + newText;
+    }
+
+    public void UpdateServerNames(string names)
+    {
+        serverNames.text = names;
     }
 }

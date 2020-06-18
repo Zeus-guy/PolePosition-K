@@ -304,11 +304,12 @@ public class PlayerController : NetworkBehaviour
         CurrentLap = 0;
         m_PlayerInfo.time1 = new TimeSpan();
     }
-    /// <summary> Comando que asigna true a la variable classified del PlayerInfo a través de un Rpc. </summary>
+    /// <summary> Comando que asigna true a la variable classified del PlayerInfo a través de un Rpc. También lo hace directamente en el servidor. </summary>
     [Command]
     public void CmdSetClassified()
     {
         RpcSetClassified();
+        m_PlayerInfo.classified = true;
     }
     /// <summary> Comando que guarda el tiempo de la vuelta indicada. </summary>
     [Command]
