@@ -34,4 +34,5 @@ public class PlayerInfo : MonoBehaviour
     public PlayerController controller;
 
     public bool classified;
+    //public bool ready;
 }

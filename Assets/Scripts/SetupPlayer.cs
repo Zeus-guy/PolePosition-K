@@ -59,6 +59,10 @@ public class SetupPlayer : NetworkBehaviour
     public override void OnStartClient()
     {
         base.OnStartClient();
+
+        if (!isServer)
+            m_UIManager.ActivateClientLobbyHUD();
+
         m_PlayerInfo.ID = m_ID;
         m_PlayerInfo.controller = m_PlayerController;
 
@@ -70,17 +74,13 @@ public class SetupPlayer : NetworkBehaviour
         m_PolePositionManager.AddPlayer(m_PlayerInfo);
         m_PlayerInfo.CheckPoint = 0;
         m_PlayerInfo.CanChangeLap = true;
-
-        if (!isLocalPlayer)
-        {
-            gameObject.SetActive(false);
-        }
     }
 
     /// <summary> Comando que cambia el nombre del jugador. </summary>
     [Command]
     private void CmdChangeName(string name)
     {
+        m_PolePositionManager.UpdateUINames();
         m_Name = name;
         SetName("",name);
     }
@@ -93,10 +93,68 @@ public class SetupPlayer : NetworkBehaviour
         SetColour(0,color);
     }
 
+    /// <summary> Comando que asigna el valor true al booleano ready del jugador. </summary>
+    [Command]
+    public void CmdPlayerReady()
+    {
+        m_PlayerInfo.controller.ready = true;
+        m_PolePositionManager.UpdateUINames();
+        RpcPlayerReady();
+        if (m_PolePositionManager.m_Players.Count < m_PolePositionManager.Player_Count)
+        {
+            return;
+        }
+        bool start = true;
+        foreach (PlayerInfo p in m_PolePositionManager.m_Players)
+        {
+            if (!p.controller.ready)
+                start = false;
+        }
+        if (start)
+        {
+            m_PolePositionManager.lobbyEnded = true;
+            RpcLobbyEnded();
+        }
+    }
+    /// <summary> Asigna el valor true al booleano ready del jugador. </summary>
+    [ClientRpc]
+    private void RpcPlayerReady()
+    {
+        m_PlayerInfo.controller.ready = true;
+        m_PolePositionManager.UpdateUINames();
+    }
+
+    /// <summary> Inicializa los jugadores cuando empieza la partida tras el lobby. </summary>
+    [ClientRpc]
+    private void RpcLobbyEnded()
+    {
+        m_PolePositionManager.lobbyEnded = true;
+        m_UIManager.StartGameUI();
+        m_PolePositionManager.m_LocalSetupPlayer.ConfigureCamera();
+        if (m_PolePositionManager.classLap)
+        {
+            foreach (PlayerInfo p in m_PolePositionManager.m_Players)
+            {
+                if (!p.controller.isLocalPlayer)
+                {
+                    p.gameObject.SetActive(false);
+                }
+            }
+            gameObject.transform.position = m_PolePositionManager.startingPoints[0].transform.position;
+        }
+        else
+        {
+            m_PlayerController.CmdSetClassified();
+            m_PlayerInfo.classified = true;
+        }
+    }
+
     /// <summary> Hook que cambia el nombre del jugador en su PlayerInfo. </summary>
     private void SetName(string oldName, string newName)
     {
         m_PlayerInfo.Name = newName;
+        m_PolePositionManager.UpdateUINames();
+        print("venga actualizamos con " + m_PlayerInfo.Name);
     }
 
     /// <summary> Hook que cambia el color del jugador en su PlayerInfo. </summary>
@@ -142,16 +200,16 @@ public class SetupPlayer : NetworkBehaviour
         }
         SetName("", m_Name);
 
-        if (isLocalPlayer)
+        /*if (isLocalPlayer)
         {
-            Dropdown Drop_color = GameObject.Find("Colour").GetComponent<Dropdown>();
+            Dropdown Drop_color = GameObject.Find("ColourDropdown").GetComponent<Dropdown>();
             m_Colour = Drop_color.value;
             if (m_Colour == 0)
                 m_Colour = 1;
             Drop_color.gameObject.SetActive(false);
             CmdChangeColour(m_Colour);
         }
-        SetColour(0, m_Colour);
+        SetColour(0, m_Colour);*/
     }
 
     #endregion
@@ -178,7 +236,7 @@ public class SetupPlayer : NetworkBehaviour
                     m_PolePositionManager.gameStarted = true;
                 }
             m_PlayerController.OnSpeedChangeEvent += OnSpeedChangeEventHandler;
-            ConfigureCamera();
+            //ConfigureCamera();
         }
     }
 
@@ -190,6 +248,8 @@ public class SetupPlayer : NetworkBehaviour
         m_PlayerInfo.CanChangeLap = true;
         m_PlayerInfo.CheckPoint = 0;
         m_PlayerInfo.LastCheckPoint = 0;
+        //m_PolePositionManager.UpdateUINames();
+        m_PolePositionManager.UpdateRaceProgress(true);
     }
 
     /// <summary> Función que deshabilita el PlayerController del jugador e indica que la partida ha finalizado. </summary>

@@ -38,7 +38,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Text endBestLap;
     [SerializeField] private Text endTotal;
     [SerializeField] private GameObject nameField;
-    [SerializeField] private GameObject colorField;
+    //[SerializeField] private GameObject colorField;
     [SerializeField] private Dropdown maxPlayers;
     [SerializeField] private GameObject waitingBox;
     [SerializeField] private Text waitingText;
@@ -48,10 +48,19 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject quitConfirmationPanel;
     [SerializeField] private GameObject quitButtonServer;
     [SerializeField] private GameObject quitConfirmationPanelServer;
+    [SerializeField] private GameObject quitButtonLobby;
+    [SerializeField] private GameObject quitConfirmationPanelLobby;
     [SerializeField] private PolePositionManager m_PolePositionManager;
     [SerializeField] private GameObject serverHUD;
     [SerializeField] private Text serverText;
     [SerializeField] private Text serverNames;
+    [SerializeField] private GameObject lobbyHUD;
+    [SerializeField] private GameObject lobbyClient;
+    [SerializeField] private GameObject lobbyServer;
+    [SerializeField] private GameObject lobbyDedicatedServer;
+    [SerializeField] private Image[] lobbyPlayerBoxes;
+    [SerializeField] private Text[] lobbyPlayerTexts;
+    [SerializeField] private Dropdown classLapDropdown;
     #endregion
     private int dots = 0;
 
@@ -99,14 +108,14 @@ public class UIManager : MonoBehaviour
         inGameHUD.SetActive(false);
         endingHUD.SetActive(false);
         nameField.SetActive(true);
-        colorField.SetActive(true);
+        //colorField.SetActive(true);
     }
 
     /// <summary> Función que activa la interfaz in-game, y desactiva las demás. </summary>
     private void ActivateInGameHUD()
     {
         mainMenu.SetActive(false);
-        inGameHUD.SetActive(true);
+        //inGameHUD.SetActive(true);
     }
     
     /// <summary> Función que activa la interfaz del servidor dedicado, y desactiva las demás. </summary>
@@ -114,7 +123,7 @@ public class UIManager : MonoBehaviour
     {
         mainMenu.SetActive(false);
         nameField.SetActive(false);
-        colorField.SetActive(false);
+        //colorField.SetActive(false);
         serverHUD.SetActive(true);
     }
 
@@ -128,9 +137,12 @@ public class UIManager : MonoBehaviour
     /// <summary> Función que inicia un host, que funciona como servidor y cliente simultáneamente. </summary>
     private void StartHost()
     {
-        m_NetworkManager.maxConnections = maxPlayers.value+2;
+        SetConnections(maxPlayers.value+2);
         m_NetworkManager.StartHost();
         ActivateInGameHUD();
+        lobbyHUD.SetActive(true);
+        lobbyClient.SetActive(true);
+        lobbyServer.SetActive(true);
     }
 
     /// <summary> Función que inicia un cliente. </summary>
@@ -141,14 +153,82 @@ public class UIManager : MonoBehaviour
         m_NetworkManager.networkAddress = inputFieldIP.text;
         ActivateInGameHUD();
         new Task(()=>UpdateDotsTask()).Start();
+
+        UpdateClientMaxPlayers();
+
+    }
+
+    /// <summary> Función que muestra el número máximo de jugadores. </summary>
+    public void UpdateClientMaxPlayers()
+    {
+        for (int i = 0; i < m_PolePositionManager.Player_Count; i++)
+        {
+            lobbyPlayerBoxes[i].gameObject.SetActive(true);
+        }
+    }
+
+    /// <summary> Función que activa la interfaz de la partida y desactiva la del lobby. </summary>
+    public void StartGameUI()
+    {
+        lobbyHUD.SetActive(false);
+        inGameHUD.SetActive(true);
+    }
+    /// <summary> Función que indica que el cliente local está listo para empezar. </summary>
+    public void ReadyButton()
+    {
+        m_PolePositionManager.m_LocalSetupPlayer.CmdPlayerReady();
+    }
+
+    /// <summary> Función que se activa al escoger si hay o no vuelta de clasificación. </summary>
+    public void OnClassLapSelection()
+    {
+        m_PolePositionManager.classLap = (classLapDropdown.value==1);
+    }
+
+    /// <summary> Función que activa el HUD del lobby para clientes. </summary>
+    public void ActivateClientLobbyHUD()
+    {
+        lobbyHUD.SetActive(true);
+        lobbyClient.SetActive(true);
     }
 
     /// <summary> Función que inicia un servidor dedicado. </summary>
     private void StartServer()
     {
-        m_NetworkManager.maxConnections = maxPlayers.value+2;
+        SetConnections(maxPlayers.value+2);
         m_NetworkManager.StartServer();
         ActivateServerHUD();
+        lobbyHUD.SetActive(true);
+        lobbyServer.SetActive(true);
+        lobbyDedicatedServer.SetActive(true);
+    }
+
+    /// <summary> Función que asigna al NetworkManager el número máximo de conexiones y lo refleja en el lobby. </summary>
+    private void SetConnections(int connections)
+    {
+        m_NetworkManager.maxConnections = connections;
+        for (int i = 0; i < connections; i++)
+        {
+            lobbyPlayerBoxes[i].gameObject.SetActive(true);
+        }
+    }
+
+    /// <summary> Función que actualiza los nombres y colores en el lobby. </summary>
+    public void UpdateNames(string[] names, bool[] ready)
+    {
+        for (int i = 0; i < m_PolePositionManager.Player_Count; i++)
+        {
+            if (i < names.Length)
+            {
+                lobbyPlayerBoxes[i].color = ready[i]?Color.green:Color.white;
+                lobbyPlayerTexts[i].text = names[i];
+            }
+            else
+            {
+                lobbyPlayerBoxes[i].color = Color.white;
+                lobbyPlayerTexts[i].text = "";
+            }
+        }
     }
 
     /// <summary> Función que asigna a la interfaz de la cuenta atrás un texto determinado. </summary>
@@ -251,6 +331,7 @@ public class UIManager : MonoBehaviour
     /// <summary> Función que vuelve a mostrar la pantalla tras un FadeOut. </summary>
     public void FadeIn()
     {
+        lobbyHUD.SetActive(false);
         fade.GetComponent<Animator>().SetTrigger("FadeIn");
     }
 
@@ -313,7 +394,19 @@ public class UIManager : MonoBehaviour
         quitButtonServer.SetActive(true);
         quitConfirmationPanelServer.SetActive(false);
     }
-    
+    /// <summary> Función que activa el panel de confirmación de abandonar el lobby. </summary>
+    public void OnButtonQuitLobby()
+    {
+        quitButtonLobby.SetActive(false);
+        quitConfirmationPanelLobby.SetActive(true);
+    }
+
+    /// <summary> Función que desactiva el panel de confirmación de abandonar el lobby. </summary>
+    public void OnButtonCancelQuitLobby()
+    {
+        quitButtonLobby.SetActive(true);
+        quitConfirmationPanelLobby.SetActive(false);
+    }
     /// <summary> Función que para el cliente y el servidor, si están activos, y resetea el juego. </summary>
     public void OnButtonConfirmQuit()
     {

@@ -40,6 +40,7 @@ public class PlayerController : NetworkBehaviour
     public Transform[] checkPoints;
     [SyncVar] public float arcLength;
     [SyncVar(hook = nameof(ChangeLapHook))] public int CurrentLap;
+    [SyncVar] public bool ready;
 
     private float Speed
     {
@@ -137,7 +138,7 @@ public class PlayerController : NetworkBehaviour
         SteerHelper();
         SpeedLimiter();
         AddDownForce();
-        //TractionControl();
+        TractionControl();
 
         if (currentDownTime <= 0)
         {
@@ -315,7 +316,7 @@ public class PlayerController : NetworkBehaviour
     [Command]
     public void CmdChangeTimes(int lap, long time)
     {
-        if (isServerOnly)
+        if (isServer)
         {
             switch (lap)
             {

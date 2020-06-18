@@ -21,17 +21,18 @@ public class PolePositionManager : NetworkBehaviour
     public Transform[] checkPoints;
     public Transform[] startingPoints;
     public Dropdown Drop_Players;
-    public bool classLap = true;
+    [SyncVar] public bool classLap = false;
 
-    private readonly List<PlayerInfo> m_Players = new List<PlayerInfo>(4);
+    public readonly List<PlayerInfo> m_Players = new List<PlayerInfo>(4);
     private CircuitController m_CircuitController;
     private GameObject[] m_DebuggingSpheres;
-    private SetupPlayer m_LocalSetupPlayer;
+    public SetupPlayer m_LocalSetupPlayer;
     private Stopwatch timer;
     private int oldPlayersLeft = -1;
 
     [SyncVar] public bool countdownStarted;
-    [SyncVar] public int Player_Count = 1;
+    [SyncVar(hook=nameof(PlayerCountHook))] public int Player_Count = 1;
+    public bool lobbyEnded;
     
     /// <summary> En Awake se asigna al countdown inicial su valor máximo, y se inicializa timer como un objeto de la clase Stopwatch. </summary>
     private void Awake()
@@ -54,7 +55,7 @@ public class PolePositionManager : NetworkBehaviour
     /// <para> Además, se llama a la función UpdateRaceProgress. </para> </summary>
     private void Update()
     {
-        if (!gameStarted)
+        if (!gameStarted && lobbyEnded)
         {
             if (m_Players.Count <= Player_Count-1 && countdown >= MAXCOUNTDOWN)
             {
@@ -97,20 +98,35 @@ public class PolePositionManager : NetworkBehaviour
                 gameStarted = true;
             }
         }
-        UpdateRaceProgress();
+        UpdateRaceProgress(false);
     }
 
     /// <summary> Añade un PlayerInfo a m_Players. </summary>
     public void AddPlayer(PlayerInfo player)
     {
         m_Players.Add(player);
+        UpdateUINames();
+        
+    }
+
+    /// <summary> Actualiza los nombres en el lobby. </summary>
+    public void UpdateUINames()
+    {
+        string[] names = new string[m_Players.Count];
+        bool[] ready = new bool[m_Players.Count];
+        for (int i = 0; i < m_Players.Count; i++)
+        {
+            names[i] = m_Players[i].Name;
+            ready[i] = m_Players[i].controller.ready;
+        }
+
+        UI_m.UpdateNames(names, ready);
     }
 
     /// <summary> Asigna la referencia al SetupPlayer que representa al jugador local. </summary>
     public void SetLocalPlayer(SetupPlayer sp)
     {
         m_LocalSetupPlayer = sp;
-        //m_LocalSetupPlayer.SetCheckPoints(checkPoints);
     }
 
     /// <summary> Clase que sirve para comparar objetos de la clase PlayerInfo utilizando floats. </summary>
@@ -132,7 +148,7 @@ public class PolePositionManager : NetworkBehaviour
     }
     
     /// <summary> Toma un array ordenado y lo muestra por pantalla si la posición de alguno de los jugadores ha cambiado. </summary>
-    public void UpdateRaceProgress()
+    public void UpdateRaceProgress(bool forceShow)
     {
         PlayerInfo[] arr = SortPlayers();
 
@@ -142,7 +158,7 @@ public class PolePositionManager : NetworkBehaviour
         bool startRace = true;
         for (int i = 0; i < arr.Length; i++)
         {
-            if (!arr[i].classified)
+            if (!arr[i].classified && classLap)
             {
                 startRace = false;
             }
@@ -157,8 +173,8 @@ public class PolePositionManager : NetworkBehaviour
             }
 
         }
-        print(myRaceOrder);
-        if (updatePosition)
+        
+        if (updatePosition || forceShow)
         {
             UI_m.SetTextPosition(myRaceOrder);
         }
@@ -469,17 +485,16 @@ public class PolePositionManager : NetworkBehaviour
         }
 
         int newId = 0;
-        for (int i = 0; i < arcLengths.Length; i++)
+        bool removedPlayer = m_Players.RemoveAll(p => p == null) > 0;
+        for (int i = 0; i < m_Players.Count; i++)
         {
-            if (arcLengths[i] == -999999)
-            {
-                this.m_Players.RemoveAt(i);
-            }
-            else
-            {
-                m_Players[i].ArrayPosition = newId;
-                newId++;
-            }
+            m_Players[i].ArrayPosition = newId;
+            newId++;
+        }
+
+        if (removedPlayer)
+        {
+            UpdateUINames();
         }
 
         PlayerInfo[] arr = m_Players.ToArray();
@@ -531,4 +546,10 @@ public class PolePositionManager : NetworkBehaviour
 
     #endregion
 
+
+    /// <summary> Hook que actualiza el número máximo de jugadores en el lobby. </summary>
+    public void PlayerCountHook(int oldVal, int newVal)
+    {
+        UI_m.UpdateClientMaxPlayers();
+    }
 }
