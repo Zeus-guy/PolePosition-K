@@ -32,4 +32,6 @@ public class PlayerInfo : MonoBehaviour
     public int segIdx = 23;
 
     public PlayerController controller;
+
+    public bool classified;
 }

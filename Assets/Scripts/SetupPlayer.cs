@@ -70,6 +70,11 @@ public class SetupPlayer : NetworkBehaviour
         m_PolePositionManager.AddPlayer(m_PlayerInfo);
         m_PlayerInfo.CheckPoint = 0;
         m_PlayerInfo.CanChangeLap = true;
+
+        if (!isLocalPlayer)
+        {
+            gameObject.SetActive(false);
+        }
     }
 
     /// <summary> Comando que cambia el nombre del jugador. </summary>
@@ -181,6 +186,10 @@ public class SetupPlayer : NetworkBehaviour
     public void StartGame()
     {
         m_PlayerController.enabled = true;
+        m_PlayerController.m_Rigidbody.constraints = RigidbodyConstraints.None;
+        m_PlayerInfo.CanChangeLap = true;
+        m_PlayerInfo.CheckPoint = 0;
+        m_PlayerInfo.LastCheckPoint = 0;
     }
 
     /// <summary> Función que deshabilita el PlayerController del jugador e indica que la partida ha finalizado. </summary>

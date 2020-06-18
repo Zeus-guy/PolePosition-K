@@ -19,7 +19,9 @@ public class PolePositionManager : NetworkBehaviour
     public float countdown;
     public bool gameStarted, timerStarted;
     public Transform[] checkPoints;
+    public Transform[] startingPoints;
     public Dropdown Drop_Players;
+    public bool classLap = true;
 
     private readonly List<PlayerInfo> m_Players = new List<PlayerInfo>(4);
     private CircuitController m_CircuitController;
@@ -77,7 +79,7 @@ public class PolePositionManager : NetworkBehaviour
                         if (isServer)
                         {
                             RpcStartGame();
-                            timer.Start();
+                            timer.Restart();
                             countdownStarted = true;
                         }
                         timerStarted = true;
@@ -132,14 +134,23 @@ public class PolePositionManager : NetworkBehaviour
         string myRaceOrder = "";
 
         bool updatePosition = false;
+        bool startRace = true;
         for (int i = 0; i < arr.Length; i++)
         {
-            if (arr[i].CurrentPosition != i)
+            if (!arr[i].classified)
             {
-                updatePosition = true;
-                arr[i].CurrentPosition = i;
+                startRace = false;
             }
-            myRaceOrder += arr[i].Name + "\n";
+            else
+            {
+                if (arr[i].CurrentPosition != i)
+                {
+                    updatePosition = true;
+                    arr[i].CurrentPosition = i;
+                }
+                myRaceOrder += arr[i].Name + "\n";
+            }
+
         }
         if (updatePosition)
             UI_m.SetTextPosition(myRaceOrder);
@@ -148,6 +159,34 @@ public class PolePositionManager : NetworkBehaviour
         {
             UI_m.SetCurTime(timer.Elapsed);
         }
+
+        if (startRace && classLap)
+        {
+            ResetClassLapPositions(arr);
+        }
+    }
+
+    /// <summary> Función que se ocupa de resetear la información de la carrera y ordenar a los jugadores cuando todos finalizan
+    /// la vuelta de clasificación. </summary>
+    private void ResetClassLapPositions(PlayerInfo[] arr)
+    {
+        classLap = false;
+        Array.Sort(arr, ((a, b) => a.time1.Ticks.CompareTo(b.time1.Ticks)));
+        for (int i = 0; i < arr.Length; i++)
+        {
+            arr[i].gameObject.SetActive(true);
+            arr[i].transform.position = startingPoints[i].transform.position;
+            arr[i].transform.eulerAngles = new Vector3(0,-90,0);
+            arr[i].controller.m_Rigidbody.velocity = Vector3.zero;
+            arr[i].controller.m_Rigidbody.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ;
+            arr[i].CanChangeLap = true;
+            arr[i].time1 = new TimeSpan();
+            if (arr[i].controller.isLocalPlayer)
+                arr[i].controller.CmdResetLap();
+        }
+        gameStarted = false;
+        timerStarted = false;
+        countdown = MAXCOUNTDOWN;
     }
 
     /// <summary> Calcula la posición del jugador en el recorrido si es el jugador local, y la toma directamente si se trata de otro jugador.
@@ -238,10 +277,24 @@ public class PolePositionManager : NetworkBehaviour
                 switch (player.controller.CurrentLap)
                 {
                     case 1:
-                        if (player.controller.isLocalPlayer)
-                            player.controller.CmdChangeTimes(0, timer.Elapsed.Ticks);
                         player.time1 = timer.Elapsed;
-                        UI_m.SetLapTime(player.time1);
+                        if (classLap)
+                        {
+                            if (player.controller.isLocalPlayer)
+                            {
+                                player.controller.CmdChangeTimes(0, timer.Elapsed.Ticks);
+                                timer.Stop();
+                                player.controller.enabled = false;
+                                UI_m.SetCountDown("WAITING FOR\n OTHER PLAYERS");
+                                player.controller.CmdSetClassified();
+                            }
+                        }
+                        else
+                        {
+                            if (player.controller.isLocalPlayer)
+                                player.controller.CmdChangeTimes(0, timer.Elapsed.Ticks);
+                            UI_m.SetLapTime(player.time1);
+                        }
                         break;
                         
                     case 2:
@@ -263,7 +316,8 @@ public class PolePositionManager : NetworkBehaviour
                 }
                 if (player.controller.isLocalPlayer)
                 {
-                    player.controller.CmdIncreaseLap();
+                    if (!classLap || player.CurrentLap == 0)
+                        player.controller.CmdIncreaseLap();
                     player.CanChangeLap = false;
                 }
             }
@@ -446,7 +500,7 @@ public class PolePositionManager : NetworkBehaviour
     {
         m_LocalSetupPlayer.StartGame();
 
-        timer.Start();
+        timer.Restart();
     }
 
     /// <summary> Desactiva el PlayerController de todos los clientes e inicia el FadeOut. </summary>

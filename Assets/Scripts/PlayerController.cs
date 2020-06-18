@@ -29,9 +29,10 @@ public class PlayerController : NetworkBehaviour
     private float InputBrake { get; set; }
 
     private PlayerInfo m_PlayerInfo;
+    private PolePositionManager m_PolePositionManager;
     private UIManager m_UIManager;
 
-    private Rigidbody m_Rigidbody;
+    public Rigidbody m_Rigidbody;
     private float m_SteerHelper = 0.8f;
     private float m_CurrentSpeed = 0;
     public const float maxDownTime = 3;
@@ -66,6 +67,7 @@ public class PlayerController : NetworkBehaviour
         m_Rigidbody = GetComponent<Rigidbody>();
         m_PlayerInfo = GetComponent<PlayerInfo>();
         m_UIManager = FindObjectOfType<UIManager>();
+        m_PolePositionManager = FindObjectOfType<PolePositionManager>();
     }
 
     /// <summary> En Update se toman los inputs del jugador y se guardan en las variables correspondientes. </summary>
@@ -135,7 +137,7 @@ public class PlayerController : NetworkBehaviour
         SteerHelper();
         SpeedLimiter();
         AddDownForce();
-        TractionControl();
+        //TractionControl();
 
         if (currentDownTime <= 0)
         {
@@ -265,6 +267,7 @@ public class PlayerController : NetworkBehaviour
                 m_PlayerInfo.CheckPoint = previousCheckPoint;
         }
     }
+
     /// <summary> Hook que se activará en los clientes cuando cambie el valor de la vuelta del jugador.
     /// <para> Sirve para asignar el valor correcto de la vuelta actual al PlayerInfo del jugador correspondiente, y para actualizar la interfaz. </para> </summary>
     public void ChangeLapHook(int oldLap, int newLap)
@@ -291,9 +294,57 @@ public class PlayerController : NetworkBehaviour
     {
         CurrentLap++;
     }
+    /// <summary> Comando que resetea el valor de CurrentLap a 0. </summary>
+    [Command]
+    public void CmdResetLap()
+    {
+        m_PolePositionManager.gameStarted = false;
+        m_PolePositionManager.timerStarted = false;
+        m_PolePositionManager.countdown = m_PolePositionManager.MAXCOUNTDOWN;
+        CurrentLap = 0;
+        m_PlayerInfo.time1 = new TimeSpan();
+    }
+    /// <summary> Comando que asigna true a la variable classified del PlayerInfo a través de un Rpc. </summary>
+    [Command]
+    public void CmdSetClassified()
+    {
+        RpcSetClassified();
+    }
     /// <summary> Comando que guarda el tiempo de la vuelta indicada. </summary>
     [Command]
     public void CmdChangeTimes(int lap, long time)
+    {
+        if (isServerOnly)
+        {
+            switch (lap)
+            {
+                case 0:
+                    m_PlayerInfo.time1 = new TimeSpan(time);
+                    break;
+                case 1:
+                    m_PlayerInfo.time2 = new TimeSpan(time);
+                    break;
+                case 2:
+                    m_PlayerInfo.time3 = new TimeSpan(time);
+                    break;
+            }
+        }
+        RpcChangeTimes(lap, time);
+    }
+    #endregion
+
+    #region RPCs
+
+    /// <summary> Asigna el valor true al booleano classified del PlayerInfo correspondiente. </summary>
+    [ClientRpc]
+    private void RpcSetClassified()
+    {
+        m_PlayerInfo.classified = true;
+    }
+
+    /// <summary> Cambia los tiempos del jugador en todos los clientes. </summary>
+    [ClientRpc]
+    private void RpcChangeTimes(int lap, long time)
     {
         switch (lap)
         {
@@ -308,5 +359,6 @@ public class PlayerController : NetworkBehaviour
                 break;
         }
     }
+
     #endregion
 }

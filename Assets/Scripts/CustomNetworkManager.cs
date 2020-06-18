@@ -7,6 +7,7 @@ using Mirror;
 /// <summary> Clase que hereda de NetworkManager y que se ocupa del comportamiento del servidor cuando se queda un jugador sólo en la partida. </summary>
 public class CustomNetworkManager : NetworkManager
 {
+    private bool closing;
     public PolePositionManager polePositionManager;
 
     /// <summary> Override de la función OnServerDisconnect de la clase NetworkManager.
@@ -15,9 +16,16 @@ public class CustomNetworkManager : NetworkManager
     public override void OnServerDisconnect(NetworkConnection conn)
     {
         base.OnServerDisconnect(conn);
-        if (numPlayers == 1 && polePositionManager != null && (polePositionManager.countdown < polePositionManager.MAXCOUNTDOWN) && polePositionManager.Player_Count > 1)
+        if (!closing && numPlayers == 1 && polePositionManager != null && (polePositionManager.countdown < polePositionManager.MAXCOUNTDOWN) && polePositionManager.Player_Count > 1)
         {
             polePositionManager.FinishGame();
         }
+    }
+
+    /// <summary> Override de la función OnStopServer de la clase NetworkManager.
+    /// <para> Cuando el servidor se está cerrando, evita que se mande el mensaje de victoria al desconectar a los clientes. </para> </summary>
+    public override void OnStopServer() 
+    {
+        closing = true;
     }
 }

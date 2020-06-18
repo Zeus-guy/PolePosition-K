@@ -144,6 +144,7 @@ public class UIManager : MonoBehaviour
     /// <summary> Función que inicia un servidor dedicado. </summary>
     private void StartServer()
     {
+        m_NetworkManager.maxConnections = maxPlayers.value+2;
         m_NetworkManager.StartServer();
         ActivateServerHUD();
     }
