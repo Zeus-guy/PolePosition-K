@@ -114,6 +114,7 @@ public class SetupPlayer : NetworkBehaviour
         {
             m_PolePositionManager.lobbyEnded = true;
             RpcLobbyEnded();
+            m_UIManager.ServerHideDropdowns();
         }
     }
     /// <summary> Asigna el valor true al booleano ready del jugador. </summary>
@@ -140,11 +141,12 @@ public class SetupPlayer : NetworkBehaviour
                     p.gameObject.SetActive(false);
                 }
             }
-            gameObject.transform.position = m_PolePositionManager.startingPoints[0].transform.position;
+            m_PolePositionManager.m_LocalSetupPlayer.gameObject.transform.position = m_PolePositionManager.startingPoints[0].transform.position;
         }
         else
         {
-            m_PlayerController.CmdSetClassified();
+            if (isLocalPlayer)
+                m_PlayerController.CmdSetClassified();
             m_PlayerInfo.classified = true;
         }
         m_PolePositionManager.UpdateRaceProgress(true);
@@ -155,7 +157,6 @@ public class SetupPlayer : NetworkBehaviour
     {
         m_PlayerInfo.Name = newName;
         m_PolePositionManager.UpdateUINames();
-        print("venga actualizamos con " + m_PlayerInfo.Name);
     }
 
     /// <summary> Hook que cambia el color del jugador en su PlayerInfo. </summary>

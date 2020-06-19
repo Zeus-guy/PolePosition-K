@@ -25,14 +25,11 @@ public class PlayerInfo : MonoBehaviour
     public int LastCheckPoint { get; set; }
     public bool CanChangeLap { get; set; }
 
-    public TimeSpan time1;
-    public TimeSpan time2;
-    public TimeSpan time3;
+    public List<TimeSpan> times = new List<TimeSpan>();
 
     public int segIdx = 23;
 
     public PlayerController controller;
 
     public bool classified;
-    //public bool ready;
 }

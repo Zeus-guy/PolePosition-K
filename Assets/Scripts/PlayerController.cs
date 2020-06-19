@@ -276,7 +276,7 @@ public class PlayerController : NetworkBehaviour
         m_PlayerInfo.CurrentLap = newLap;
         m_PlayerInfo.CanChangeLap = false;
         if (isLocalPlayer)
-            m_UIManager.SetLap(newLap);
+            m_UIManager.SetLap(newLap, m_PolePositionManager.maxLaps);
     }
 
     #endregion
@@ -303,7 +303,7 @@ public class PlayerController : NetworkBehaviour
         m_PolePositionManager.timerStarted = false;
         m_PolePositionManager.countdown = m_PolePositionManager.MAXCOUNTDOWN;
         CurrentLap = 0;
-        m_PlayerInfo.time1 = new TimeSpan();
+        m_PlayerInfo.times.Clear();
     }
     /// <summary> Comando que asigna true a la variable classified del PlayerInfo a través de un Rpc. También lo hace directamente en el servidor. </summary>
     [Command]
@@ -314,24 +314,13 @@ public class PlayerController : NetworkBehaviour
     }
     /// <summary> Comando que guarda el tiempo de la vuelta indicada. </summary>
     [Command]
-    public void CmdChangeTimes(int lap, long time)
+    public void CmdChangeTimes(long time)
     {
-        if (isServer)
+        if (isServerOnly)
         {
-            switch (lap)
-            {
-                case 0:
-                    m_PlayerInfo.time1 = new TimeSpan(time);
-                    break;
-                case 1:
-                    m_PlayerInfo.time2 = new TimeSpan(time);
-                    break;
-                case 2:
-                    m_PlayerInfo.time3 = new TimeSpan(time);
-                    break;
-            }
+            m_PlayerInfo.times.Add(new TimeSpan(time));
         }
-        RpcChangeTimes(lap, time);
+        RpcChangeTimes(time);
     }
     #endregion
 
@@ -346,20 +335,9 @@ public class PlayerController : NetworkBehaviour
 
     /// <summary> Cambia los tiempos del jugador en todos los clientes. </summary>
     [ClientRpc]
-    private void RpcChangeTimes(int lap, long time)
+    private void RpcChangeTimes(long time)
     {
-        switch (lap)
-        {
-            case 0:
-                m_PlayerInfo.time1 = new TimeSpan(time);
-                break;
-            case 1:
-                m_PlayerInfo.time2 = new TimeSpan(time);
-                break;
-            case 2:
-                m_PlayerInfo.time3 = new TimeSpan(time);
-                break;
-        }
+        m_PlayerInfo.times.Add(new TimeSpan(time));
     }
 
     #endregion

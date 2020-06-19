@@ -61,8 +61,12 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Image[] lobbyPlayerBoxes;
     [SerializeField] private Text[] lobbyPlayerTexts;
     [SerializeField] private Dropdown classLapDropdown;
+    [SerializeField] private Dropdown numLapDropdown;
     [SerializeField] private Dropdown colorDropdown;
     [SerializeField] private Renderer UICar;
+    [SerializeField] private Text clientClassLapText;
+    [SerializeField] private Text clientNumLapsText;
+    [SerializeField] private Dropdown endLapDropdown;
     #endregion
     private int dots = 0;
 
@@ -151,8 +155,8 @@ public class UIManager : MonoBehaviour
     private void StartClient()
     {
         ToggleWaitingHUD(true);
+        m_NetworkManager.networkAddress = (inputFieldIP.text != "")?inputFieldIP.text:"localhost";
         m_NetworkManager.StartClient();
-        m_NetworkManager.networkAddress = inputFieldIP.text;
         ActivateInGameHUD();
         new Task(()=>UpdateDotsTask()).Start();
 
@@ -175,6 +179,12 @@ public class UIManager : MonoBehaviour
         lobbyHUD.SetActive(false);
         inGameHUD.SetActive(true);
     }
+    /// <summary> Función que deshabilita los botones que permiten cambiar el número de vueltas y si hay o no vuelta de clasificación. </summary>
+    public void ServerHideDropdowns()
+    {
+        classLapDropdown.gameObject.SetActive(false);
+        numLapDropdown.gameObject.SetActive(false);
+    }
     /// <summary> Función que indica que el cliente local está listo para empezar. </summary>
     public void ReadyButton()
     {
@@ -185,6 +195,13 @@ public class UIManager : MonoBehaviour
     public void OnClassLapSelection()
     {
         m_PolePositionManager.classLap = (classLapDropdown.value==1);
+        ClientChangeClassLap(classLapDropdown.value==1);
+    }
+    /// <summary> Función que se activa al escoger el número de vueltas. </summary>
+    public void OnNumLapSelection()
+    {
+        m_PolePositionManager.maxLaps = (numLapDropdown.value+1);
+        ClientChangeNumLaps(numLapDropdown.value+1);
     }
 
     /// <summary> Función que activa el HUD del lobby para clientes. </summary>
@@ -285,12 +302,12 @@ public class UIManager : MonoBehaviour
     }
 
     /// <summary> Función que asigna un valor (entre 1 y el número máximo de vueltas) al texto que muestra las vueltas que lleva el jugador. </summary>
-    public void SetLap(int lap)
+    public void SetLap(int lap, int maxLaps)
     {
         if (lap < 1) lap = 1;
         if (lap > 3) lap = 3;
 
-        textLaps.text = "Lap: " + lap + "/3";
+        textLaps.text = "Lap: " + lap + "/" + maxLaps;
     }
 
     /// <summary> Función que muestra en la interfaz el tiempo actual. </summary>
@@ -435,5 +452,28 @@ public class UIManager : MonoBehaviour
     {
         m_PolePositionManager.m_LocalSetupPlayer.CmdChangeColour(colorDropdown.value);
         UICar.materials = m_PolePositionManager.m_LocalSetupPlayer.GetCarMaterials(UICar.materials, colorDropdown.value);
+    }
+
+    /// <summary> Función que modifica el texto indicando si hay o no vuelta de clasificación. </summary>
+    public void ClientChangeClassLap(bool activated)
+    {
+        clientClassLapText.text = activated?"Class lap":"No class lap";
+    }
+
+    /// <summary> Función que modifica el texto indicando el número de vueltas. </summary>
+    public void ClientChangeNumLaps(int numLaps)
+    {
+        clientNumLapsText.text = numLaps + " lap" + ((numLaps != 1)?"s":"");
+    }
+
+    /// <summary> Función que modifica el desplegable del final de la partida para poder mostrar todas las vueltas. </summary>
+    public void AddEndDropdownLaps(int laps)
+    {
+        List<string> options = new List<string>();
+        for (int i = 0; i < laps; i++)
+        {
+            options.Add("Lap "+(i+1));
+        }
+        endLapDropdown.AddOptions(options);
     }
 }

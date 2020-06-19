@@ -21,7 +21,8 @@ public class PolePositionManager : NetworkBehaviour
     public Transform[] checkPoints;
     public Transform[] startingPoints;
     public Dropdown Drop_Players;
-    [SyncVar] public bool classLap = false;
+    [SyncVar(hook=nameof(ClassLapHook))] public bool classLap = false;
+    [SyncVar(hook=nameof(MaxLapsHook))] public int maxLaps = 3;
 
     public readonly List<PlayerInfo> m_Players = new List<PlayerInfo>(4);
     private CircuitController m_CircuitController;
@@ -29,6 +30,7 @@ public class PolePositionManager : NetworkBehaviour
     public SetupPlayer m_LocalSetupPlayer;
     private Stopwatch timer;
     private int oldPlayersLeft = -1;
+    public bool resetedAfterClassLap;
 
     [SyncVar] public bool countdownStarted;
     [SyncVar(hook=nameof(PlayerCountHook))] public int Player_Count = 1;
@@ -185,19 +187,21 @@ public class PolePositionManager : NetworkBehaviour
         {
             UI_m.SetCurTime(timer.Elapsed);
         }
-
-        if (startRace && classLap)
+        
+        if (startRace && resetedAfterClassLap)
         {
             ResetClassLapPositions(arr);
         }
     }
+
 
     /// <summary> Función que se ocupa de resetear la información de la carrera y ordenar a los jugadores cuando todos finalizan
     /// la vuelta de clasificación. </summary>
     private void ResetClassLapPositions(PlayerInfo[] arr)
     {
         classLap = false;
-        Array.Sort(arr, ((a, b) => a.time1.Ticks.CompareTo(b.time1.Ticks)));
+        resetedAfterClassLap = false;
+        Array.Sort(arr, ((a, b) => a.times[0].Ticks.CompareTo(b.times[0].Ticks)));
         for (int i = 0; i < arr.Length; i++)
         {
             arr[i].gameObject.SetActive(true);
@@ -206,7 +210,7 @@ public class PolePositionManager : NetworkBehaviour
             arr[i].controller.m_Rigidbody.velocity = Vector3.zero;
             arr[i].controller.m_Rigidbody.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ;
             arr[i].CanChangeLap = true;
-            arr[i].time1 = new TimeSpan();
+            arr[i].times.Clear();
             if (arr[i].controller.isLocalPlayer)
                 arr[i].controller.CmdResetLap();
         }
@@ -300,15 +304,16 @@ public class PolePositionManager : NetworkBehaviour
         {
             if (player.CheckPoint == 0)
             {
-                switch (player.controller.CurrentLap)
+                if (player.controller.CurrentLap != 0)
                 {
-                    case 1:
-                        player.time1 = timer.Elapsed;
+                    if (player.controller.CurrentLap == 1 && (maxLaps != 1 || classLap))
+                    {
+                        player.times.Add(timer.Elapsed);
                         if (classLap)
                         {
                             if (player.controller.isLocalPlayer)
                             {
-                                player.controller.CmdChangeTimes(0, timer.Elapsed.Ticks);
+                                player.controller.CmdChangeTimes(timer.Elapsed.Ticks);
                                 timer.Stop();
                                 player.controller.enabled = false;
                                 UI_m.SetCountDown("WAITING FOR\n OTHER PLAYERS");
@@ -318,27 +323,30 @@ public class PolePositionManager : NetworkBehaviour
                         else
                         {
                             if (player.controller.isLocalPlayer)
-                                player.controller.CmdChangeTimes(0, timer.Elapsed.Ticks);
-                            UI_m.SetLapTime(player.time1);
+                                player.controller.CmdChangeTimes(timer.Elapsed.Ticks);
+                            UI_m.SetLapTime(player.times[0]);
                         }
-                        break;
-                        
-                    case 2:
-                        if (player.controller.isLocalPlayer)
-                            player.controller.CmdChangeTimes(1, timer.Elapsed.Ticks);
-                        player.time2 = timer.Elapsed;
-                        UI_m.SetLapTime(player.time2-player.time1);
-                        break;
-                        
-                    case 3:
+                    }
+                    else if (player.controller.CurrentLap == maxLaps)
+                    {
                         timer.Stop();
                         if (player.controller.isLocalPlayer)
-                            player.controller.CmdChangeTimes(2, timer.Elapsed.Ticks);
-                        player.time3 = timer.Elapsed;
-                        UI_m.SetLapTime(player.time3-player.time2);
+                            player.controller.CmdChangeTimes(timer.Elapsed.Ticks);
+                        player.times.Add(timer.Elapsed);
+                        if (maxLaps == 1)
+                            UI_m.SetLapTime(player.times[maxLaps-1]);
+                        else
+                            UI_m.SetLapTime(player.times[maxLaps-1]-player.times[maxLaps-2]);
                         if (player.controller.isLocalPlayer)
                             FinishGame();
-                        break;
+                    }
+                    else
+                    {
+                        if (player.controller.isLocalPlayer)
+                            player.controller.CmdChangeTimes(timer.Elapsed.Ticks);
+                        player.times.Add(timer.Elapsed);
+                        UI_m.SetLapTime(player.times[player.controller.CurrentLap-1]-player.times[player.controller.CurrentLap-2]);
+                    }
                 }
                 if (player.controller.isLocalPlayer)
                 {
@@ -374,50 +382,49 @@ public class PolePositionManager : NetworkBehaviour
         if (isServer)
         {
             string names = "Players\n\n";
-            string lap1 = "Lap 1\n\n";
-            string lap2 = "Lap 2\n\n";
-            string lap3 = "Lap 3\n\n";
             string total = "Total\n\n";
-            string t1, t2, t3, tt, bt;
-            string[] laps = new string[3];
+            string tt, bt;
+            string[] laps = new string[maxLaps];
             string bestLap = "Best Lap\n\n";
             TimeSpan ts, bestTs;
             TimeSpan zeroTs = new TimeSpan(0);
 
             PlayerInfo[] playerArray = SortPlayers();
 
+            for (int i = 0; i < maxLaps; i++)
+            {
+                laps[i] = "Lap " + i + "\n\n";
+            }
+
             foreach (PlayerInfo p in playerArray)
             {
-                ts = p.time1;
-                bestTs = ts;
-                if (p.time1 > zeroTs)
-                    t1 = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds);
-                else
-                    t1 = "--:--.---";
-
-                ts = p.time2 - p.time1;
-                if (ts < bestTs && ts > zeroTs)
-                    bestTs = ts;
-
-                if (p.time1 > zeroTs && p.time2 > zeroTs)
-                    t2 = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds);
-                else
-                    t2 = "--:--.---";
-                
-                ts = p.time3 - p.time2;
-                if (ts < bestTs && ts > zeroTs)
-                    bestTs = ts;
-
-                if (p.time2 > zeroTs && p.time3 > zeroTs)
+                bestTs = zeroTs;
+                for (int i = 0; i < maxLaps; i++)
                 {
-                    t3 = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds);
+                    if (i < p.times.Count)
+                    {
+                        if (i == 0)
+                        {
+                            bestTs = p.times[0];
+                            laps[0] += String.Format("{0:00}:{1:00}.{2:000}", p.times[0].Minutes, p.times[0].Seconds, p.times[0].Milliseconds) + "\n\n";
+                        }
+                        else
+                        {
+                            ts = p.times[i]-p.times[i-1];
+                            if (ts < bestTs)
+                                bestTs = ts;
+                            laps[i] += String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds) + "\n\n";
+                        }
+                    }
+                    else
+                    {
+                        laps[i] += "--:--.---\n\n";
+                    }
                 }
-                else
-                    t3 = "--:--.---";
                 
-                if (p.time3 > zeroTs)
+                if (p.times.Count == maxLaps)
                 {
-                    ts = p.time3;
+                    ts = p.times[maxLaps-1];
                     tt = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds);
                 }
                 else
@@ -435,16 +442,10 @@ public class PolePositionManager : NetworkBehaviour
                 }
                     
                 names = names + p.Name + "\n\n";
-                lap1 = lap1 + t1 + "\n\n";
-                lap2 = lap2 + t2 + "\n\n";
-                lap3 = lap3 + t3 + "\n\n";
                 total = total + tt + "\n\n";
                 bestLap = bestLap + bt + "\n\n";
 
             }
-            laps[0] = lap1;
-            laps[1] = lap2;
-            laps[2] = lap3;
             
             RpcChangeScores(names, laps, bestLap, total);
             if (isServerOnly)
@@ -542,6 +543,7 @@ public class PolePositionManager : NetworkBehaviour
     void RpcChangeScores(string names, string[] laps, string bestLap, string total)
     {
         ChangeScores(names, laps, bestLap, total);
+        UI_m.AddEndDropdownLaps(laps.Length);
     }
 
     #endregion
@@ -551,5 +553,19 @@ public class PolePositionManager : NetworkBehaviour
     public void PlayerCountHook(int oldVal, int newVal)
     {
         UI_m.UpdateClientMaxPlayers();
+    }
+
+    /// <summary> Hook que actualiza un booleano interno dependiente de si hay o no vuelta de clasificación. </summary>
+    public void ClassLapHook(bool oldVal, bool newVal)
+    {
+        resetedAfterClassLap = newVal;
+        UI_m.ClientChangeClassLap(newVal);
+    }
+
+    /// <summary> Hook que actualiza el número máximo de vueltas. </summary>
+    public void MaxLapsHook(int oldVal, int newVal)
+    {
+        UI_m.ClientChangeNumLaps(newVal);
+            UI_m.SetLap(0, maxLaps);
     }
 }

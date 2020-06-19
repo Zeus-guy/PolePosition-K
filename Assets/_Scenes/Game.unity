@@ -1361,7 +1361,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'LAP: -/-'
+  m_Text: 'LAP: 1/3'
 --- !u!222 &155323080
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1859,7 +1859,7 @@ GameObject:
   - component: {fileID: 239113490}
   - component: {fileID: 239113489}
   m_Layer: 5
-  m_Name: Label (1)
+  m_Name: LabelLaps
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1876,8 +1876,8 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
-  m_Father: {fileID: 1680759220}
-  m_RootOrder: 5
+  m_Father: {fileID: 1270045231}
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -1915,7 +1915,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 1 lap
+  m_Text: 3 laps
 --- !u!222 &239113490
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2775,7 +2775,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 1 lap
+  m_Text: 3 laps
 --- !u!222 &339106501
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3933,7 +3933,7 @@ MonoBehaviour:
   m_CaptionImage: {fileID: 0}
   m_ItemText: {fileID: 1309045633}
   m_ItemImage: {fileID: 0}
-  m_Value: 0
+  m_Value: 2
   m_Options:
     m_Options:
     - m_Text: 1 lap
@@ -3958,7 +3958,18 @@ MonoBehaviour:
       m_Image: {fileID: 0}
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1823041897}
+        m_MethodName: OnNumLapSelection
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 1
 --- !u!114 &402674230
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6226,7 +6237,7 @@ RectTransform:
   m_Children:
   - {fileID: 343474044}
   m_Father: {fileID: 1270045231}
-  m_RootOrder: 6
+  m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -7740,7 +7751,7 @@ GameObject:
   - component: {fileID: 816025665}
   - component: {fileID: 816025664}
   m_Layer: 5
-  m_Name: Label
+  m_Name: LabelClass
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7757,8 +7768,8 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
-  m_Father: {fileID: 1680759220}
-  m_RootOrder: 4
+  m_Father: {fileID: 1270045231}
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -7945,7 +7956,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Lap 1
+  m_Text: 
 --- !u!222 &819994388
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -10225,7 +10236,7 @@ RectTransform:
   - {fileID: 1495839419}
   - {fileID: 402674228}
   m_Father: {fileID: 1270045231}
-  m_RootOrder: 4
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -11696,6 +11707,8 @@ RectTransform:
   - {fileID: 1712653532}
   - {fileID: 256239175}
   - {fileID: 439144148}
+  - {fileID: 816025663}
+  - {fileID: 239113488}
   - {fileID: 1680759220}
   - {fileID: 1140277484}
   - {fileID: 1341221121}
@@ -12515,7 +12528,7 @@ RectTransform:
   m_Children:
   - {fileID: 1436204933}
   m_Father: {fileID: 1270045231}
-  m_RootOrder: 5
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -13117,13 +13130,7 @@ MonoBehaviour:
   m_ItemImage: {fileID: 0}
   m_Value: 0
   m_Options:
-    m_Options:
-    - m_Text: Lap 1
-      m_Image: {fileID: 0}
-    - m_Text: Lap 2
-      m_Image: {fileID: 0}
-    - m_Text: Lap 3
-      m_Image: {fileID: 0}
+    m_Options: []
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
@@ -15690,10 +15697,8 @@ RectTransform:
   - {fileID: 585382572}
   - {fileID: 246579411}
   - {fileID: 340653569}
-  - {fileID: 816025663}
-  - {fileID: 239113488}
   m_Father: {fileID: 1270045231}
-  m_RootOrder: 3
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -17007,8 +17012,12 @@ MonoBehaviour:
   - {fileID: 1013624806}
   - {fileID: 1602063340}
   classLapDropdown: {fileID: 1495839420}
+  numLapDropdown: {fileID: 402674229}
   colorDropdown: {fileID: 585382573}
   UICar: {fileID: 1503580252}
+  clientClassLapText: {fileID: 816025664}
+  clientNumLapsText: {fileID: 239113489}
+  endLapDropdown: {fileID: 1383640213}
 --- !u!4 &1823041898
 Transform:
   m_ObjectHideFlags: 0
@@ -17154,7 +17163,9 @@ MonoBehaviour:
   - {fileID: 9126478173010760339}
   Drop_Players: {fileID: 746536325}
   classLap: 0
+  maxLaps: 3
   m_LocalSetupPlayer: {fileID: 0}
+  resetedAfterClassLap: 0
   countdownStarted: 0
   Player_Count: 1
   lobbyEnded: 0
@@ -19596,7 +19607,7 @@ RectTransform:
   - {fileID: 1191287455}
   - {fileID: 751709569}
   m_Father: {fileID: 1270045231}
-  m_RootOrder: 7
+  m_RootOrder: 9
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
