@@ -61,6 +61,7 @@ public class PlayerController : NetworkBehaviour
     {
         public double timestamp;
         public Vector3 position;
+        public Vector3 velocity;
         public Quaternion rotation;
     }
 
@@ -89,6 +90,58 @@ public class PlayerController : NetworkBehaviour
         m_PlayerInfo = GetComponent<PlayerInfo>();
         m_UIManager = FindObjectOfType<UIManager>();
     }
+
+    public override void OnStartClient()
+    {
+        base.OnStartClient();
+        if (!isLocalPlayer)
+            GetComponent<NetworkTransform>().enabled = true;
+    }
+
+    public override void OnStartServer()
+    {
+        base.OnStartServer();
+        GetComponent<NetworkTransform>().enabled = true;
+    }
+
+    public void LateUpdate()
+    {
+        if (NetworkServer.active)
+        {
+            RpcGetPositions(transform.position, m_Rigidbody.velocity, transform.rotation);
+        }
+    }
+
+    [ClientRpc]
+    private void RpcGetPositions(Vector3 pos, Vector3 vel, Quaternion rot)
+    {
+        State state = new State();
+        state.timestamp = Time.fixedTime;
+
+        state.position = pos;
+        state.velocity = vel;
+        state.rotation = rot;
+
+        // Shift the buffer sideways, deleting state 20
+        for (int i = proxyStates.Length - 1; i >= 1; i--)
+        {
+            proxyStates[i] = proxyStates[i - 1];
+        }
+
+        // Record current state in slot 0
+        proxyStates[0] = state;
+        print("posicion guardada");
+
+        // Update used slot count, however never exceed the buffer size
+        // Slots aren't actually freed so this just makes sure the buffer is
+        // filled up and that uninitalized slots aren't used.
+        proxyStateCount = Mathf.Min(proxyStateCount + 1, proxyStates.Length);
+
+        // Check if states are in order
+        if (proxyStates[0].timestamp < proxyStates[1].timestamp)
+            Debug.LogError("Timestamp inconsistent: " + proxyStates[0].timestamp + " should be greater than " + proxyStates[1].timestamp);
+    }
+
 
     /// <summary> En Update se toman los inputs del jugador y se guardan en las variables correspondientes. </summary>
     public void Update()
@@ -124,43 +177,12 @@ public class PlayerController : NetworkBehaviour
 
 
 
-        /*if (isClientOnly)
+        if (isClientOnly)
         {
-            bool changed = false;
-            if (lastPos != transform.position || lastRot != transform.rotation)
-            {
-                changed = true;
-            }
+                
 
-            if (changed)
-            {
-                State state;
-                state.timestamp = Time.fixedTime;
 
-                state.position = transform.position;
-                state.rotation = transform.rotation;
-
-                // Shift the buffer sideways, deleting state 20
-                for (int i = proxyStates.Length - 1; i >= 1; i--)
-                {
-                    proxyStates[i] = proxyStates[i - 1];
-                }
-
-                // Record current state in slot 0
-                proxyStates[0] = state;
-                print("posicion guardada");
-
-                // Update used slot count, however never exceed the buffer size
-                // Slots aren't actually freed so this just makes sure the buffer is
-                // filled up and that uninitalized slots aren't used.
-                proxyStateCount = Mathf.Min(proxyStateCount + 1, proxyStates.Length);
-
-                // Check if states are in order
-                if (proxyStates[0].timestamp < proxyStates[1].timestamp)
-                    Debug.LogError("Timestamp inconsistent: " + proxyStates[0].timestamp + " should be greater than " + proxyStates[1].timestamp);
-                }
-
-const double interpolationBackTime = 0.1;
+const double interpolationBackTime = 0.01;const double extrapolationLimit = 0.5;
             // This is the target playback time of the rigid body
 			double interpolationTime = Time.time - interpolationBackTime;
 
@@ -196,9 +218,9 @@ const double interpolationBackTime = 0.1;
 						return;
 					}
 				}
-			}print("jaja que no");
+			}
 			// Use extrapolation
-			/*else
+			else
 			{
 				State latest = proxyStates[0];
 
@@ -206,17 +228,16 @@ const double interpolationBackTime = 0.1;
 				// Don't extrapolation for more than 500 ms, you would need to do that carefully
 				if (extrapolationLength < extrapolationLimit)
 				{
-					transform.position = latest.pos + latest.vel * extrapolationLength;
-					transform.rotation = latest.rot;
-					character.SimpleMove(latest.vel);
+					transform.position = latest.position + latest.velocity * extrapolationLength;
+					transform.rotation = latest.rotation;
 				}
-			}*/
-       // }
+			}
+        }
 
 
         
         if (!isServer) return;
-        //Simulación en local, venga por qué no
+        //Nada de Simulación en local, venga por qué no
 
         InputSteering = Mathf.Clamp(InputSteering, -1, 1);
         InputAcceleration = Mathf.Clamp(InputAcceleration, -1, 1);
