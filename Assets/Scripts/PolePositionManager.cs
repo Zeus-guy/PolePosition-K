@@ -21,8 +21,8 @@ public class PolePositionManager : NetworkBehaviour
     public Transform[] checkPoints;
     public Transform[] startingPoints;
     public Dropdown Drop_Players;
-    [SyncVar(hook=nameof(ClassLapHook))] public bool classLap = false;
-    [SyncVar(hook=nameof(MaxLapsHook))] public int maxLaps = 3;
+    [SyncVar(hook=nameof(ClassLapHook))] public bool classLap;
+    [SyncVar(hook=nameof(MaxLapsHook))] public int maxLaps;
 
     public readonly List<PlayerInfo> m_Players = new List<PlayerInfo>(4);
     private CircuitController m_CircuitController;
@@ -96,7 +96,8 @@ public class PolePositionManager : NetworkBehaviour
                 gameStarted = true;
             }
         }
-        UpdateRaceProgress(false);
+        if (lobbyEnded)
+            UpdateRaceProgress(false);
     }
 
     /// <summary> Añade un PlayerInfo a m_Players. </summary>
@@ -210,7 +211,7 @@ public class PolePositionManager : NetworkBehaviour
             arr[i].CanChangeLap = true;
             arr[i].times.Clear();
             if (arr[i].controller.isLocalPlayer)
-                arr[i].controller.CmdResetLap();
+                arr[i].controller.CmdResetLap(i);
         }
         gameStarted = false;
         timerStarted = false;

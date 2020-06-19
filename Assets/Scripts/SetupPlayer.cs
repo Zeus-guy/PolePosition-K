@@ -42,6 +42,9 @@ public class SetupPlayer : NetworkBehaviour
         base.OnStartServer();
         //No se protege m_ID, pues sólo se modifica al iniciar el servidor.
         m_ID = connectionToClient.connectionId;
+        if (!isLocalPlayer)
+            m_PlayerController.enabled = true;
+            
         if (isServerOnly)
         {
             m_PlayerInfo.ID = m_ID;
@@ -75,6 +78,14 @@ public class SetupPlayer : NetworkBehaviour
         m_PolePositionManager.AddPlayer(m_PlayerInfo);
         m_PlayerInfo.CheckPoint = 0;
         m_PlayerInfo.CanChangeLap = true;
+        if (isClientOnly)
+        {
+            Rigidbody rb = GetComponent<Rigidbody>();
+            rb.isKinematic = true;
+            rb.freezeRotation = true;
+            rb.constraints = RigidbodyConstraints.FreezeAll;
+
+        }
     }
 
     /// <summary> Comando que cambia el nombre del jugador. No se protege m_Name porque sólo se cambia al iniciar el cliente local. </summary>
@@ -116,8 +127,22 @@ public class SetupPlayer : NetworkBehaviour
             m_PolePositionManager.lobbyEnded = true;
             RpcLobbyEnded();
             m_UIManager.ServerHideDropdowns();
+            if (m_PolePositionManager.classLap)
+            {
+                for (int i = 0; i < m_PolePositionManager.m_Players.Count; i++)
+                {
+                    if (!m_PolePositionManager.m_Players[i].controller.isLocalPlayer)
+                    {
+                        m_PlayerController.RecursiveChangeLayer(m_PolePositionManager.m_Players[i].gameObject, 9 + i);
+                        //m_PolePositionManager.m_Players[i].gameObject.layer = 9 + i;
+                        m_PolePositionManager.m_Players[i].gameObject.transform.position = m_PolePositionManager.startingPoints[0].transform.position;
+                    }
+                }
+            }
+
         }
     }
+
     /// <summary> Asigna el valor true al booleano ready del jugador. </summary>
     [ClientRpc]
     private void RpcPlayerReady()

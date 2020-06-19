@@ -24,25 +24,31 @@ public class PlayerController : NetworkBehaviour
     public float slipLimit = 0.2f;
 
     private float CurrentRotation { get; set; }
-    private float InputAcceleration { get; set; }
-    private float InputSteering { get; set; }
-    private float InputBrake { get; set; }
 
     private PlayerInfo m_PlayerInfo;
     private PolePositionManager m_PolePositionManager;
     private UIManager m_UIManager;
 
+    private Vector3 lastPos;
+    private Quaternion lastRot;
+    private State[] proxyStates = new State[20];
+    private int proxyStateCount;
+
     public Rigidbody m_Rigidbody;
     private float m_SteerHelper = 0.8f;
-    private float m_CurrentSpeed = 0;
+    //private float m_CurrentSpeed = 0;
     public const float maxDownTime = 3;
     public float currentDownTime = maxDownTime;
     public Transform[] checkPoints;
     [SyncVar] public float arcLength;
     [SyncVar(hook = nameof(ChangeLapHook))] public int CurrentLap;
     [SyncVar] public bool ready;
+    [SyncVar] private float InputAcceleration;
+    [SyncVar] private float InputSteering;
+    [SyncVar] private float InputBrake;
+    [SyncVar(hook=nameof(ChangeSpeedHook))] private float m_CurrentSpeed = 0;
 
-    private float Speed
+    /*private float Speed
     {
         get { return m_CurrentSpeed; }
         set
@@ -52,8 +58,25 @@ public class PlayerController : NetworkBehaviour
             if (OnSpeedChangeEvent != null)
                 OnSpeedChangeEvent(m_CurrentSpeed);
         }
+    }*/
+    private struct State
+    {
+        public double timestamp;
+        public Vector3 position;
+        public Vector3 velocity;
+        public Quaternion rotation;
     }
 
+    private void ChangeSpeedHook(float oldSpeed, float newSpeed)
+    {
+        /*if (Math.Abs(oldSpeed - newSpeed) < float.Epsilon) 
+        {
+            m_CurrentSpeed = oldSpeed;
+            return;
+        }*/
+        if (OnSpeedChangeEvent != null)
+            OnSpeedChangeEvent(m_CurrentSpeed);
+    }
 
     public delegate void OnSpeedChangeDelegate(float newVal);
 
@@ -71,19 +94,151 @@ public class PlayerController : NetworkBehaviour
         m_PolePositionManager = FindObjectOfType<PolePositionManager>();
     }
 
+    public override void OnStartClient()
+    {
+        base.OnStartClient();
+        if (!isLocalPlayer)
+            GetComponent<NetworkTransform>().enabled = true;
+    }
+
+    public override void OnStartServer()
+    {
+        base.OnStartServer();
+        GetComponent<NetworkTransform>().enabled = true;
+    }
+
+    public void LateUpdate()
+    {
+        if (NetworkServer.active)
+        {
+            RpcGetPositions(transform.position, m_Rigidbody.velocity, transform.rotation);
+        }
+    }
+
+    [ClientRpc]
+    private void RpcGetPositions(Vector3 pos, Vector3 vel, Quaternion rot)
+    {
+        State state = new State();
+        state.timestamp = Time.fixedTime;
+
+        state.position = pos;
+        state.velocity = vel;
+        state.rotation = rot;
+
+        // Shift the buffer sideways, deleting state 20
+        for (int i = proxyStates.Length - 1; i >= 1; i--)
+        {
+            proxyStates[i] = proxyStates[i - 1];
+        }
+
+        // Record current state in slot 0
+        proxyStates[0] = state;
+        print("posicion guardada");
+
+        // Update used slot count, however never exceed the buffer size
+        // Slots aren't actually freed so this just makes sure the buffer is
+        // filled up and that uninitalized slots aren't used.
+        proxyStateCount = Mathf.Min(proxyStateCount + 1, proxyStates.Length);
+
+        // Check if states are in order
+        if (proxyStates[0].timestamp < proxyStates[1].timestamp)
+            Debug.LogError("Timestamp inconsistent: " + proxyStates[0].timestamp + " should be greater than " + proxyStates[1].timestamp);
+    }
+
+
     /// <summary> En Update se toman los inputs del jugador y se guardan en las variables correspondientes. </summary>
     public void Update()
     {
-        InputAcceleration = Input.GetAxis("Vertical");
-        InputSteering = Input.GetAxis(("Horizontal"));
-        InputBrake = Input.GetAxis("Jump");
-        Speed = m_Rigidbody.velocity.magnitude;
+        if (isLocalPlayer)
+        {
+            InputAcceleration = Input.GetAxis("Vertical");
+            InputSteering = Input.GetAxis(("Horizontal"));
+            InputBrake = Input.GetAxis("Jump");
+        }
+
+        if (isClientOnly)
+        {
+            
+        }
+    }
+
+    [Command]
+    private void CmdUpdateInputs(float acceleration, float steering, float brake)
+    {
+        InputAcceleration = acceleration;
+        InputSteering = steering;
+        InputBrake = brake;
+        m_CurrentSpeed = m_Rigidbody.velocity.magnitude;
     }
 
     /// <summary> En FixedUpdate se actualizan las físicas según los valores tomados anteriormente de los inputs. 
     /// <para> También se devuelve al jugador al último checkpoint por el que ha pasado si lleva demasiado tiempo sin poder moverse o tocando la hierba. </para></summary>
     public void FixedUpdate()
     {
+        if (isLocalPlayer)
+            CmdUpdateInputs(InputAcceleration, InputSteering, InputBrake);
+
+
+
+        if (isClientOnly)
+        {
+const double interpolationBackTime = 0.01;const double extrapolationLimit = 0.5;
+            // This is the target playback time of the rigid body
+            double interpolationTime = Time.time - interpolationBackTime;
+
+            // Use interpolation if the target playback time is present in the buffer
+            if (proxyStates[0].timestamp > interpolationTime)
+            {
+                // Go through buffer and find correct state to play back
+                for (int i = 0; i < proxyStateCount; i++)
+                {
+                    if (proxyStates[i].timestamp <= interpolationTime || i == proxyStateCount - 1)
+                    {
+                        // The state one slot newer (<100ms) than the best playback state
+                        State rhs = proxyStates[Mathf.Max(i - 1, 0)];
+                        // The best playback state (closest to 100 ms old (default time))
+                        State lhs = proxyStates[i];
+
+                        // Use the time between the two slots to determine if interpolation is necessary
+                        double length = rhs.timestamp - lhs.timestamp;
+                        float t = 0.0F;
+                        // As the time difference gets closer to 100 ms t gets closer to 1 in 
+                        // which case rhs is only used
+                        // Example:
+                        // Time is 10.000, so sampleTime is 9.900 
+                        // lhs.time is 9.910 rhs.time is 9.980 length is 0.070
+                        // t is 9.900 - 9.910 / 0.070 = 0.14. So it uses 14% of rhs, 86% of lhs
+                        if (length > 0.0001)
+                            t = (float)((interpolationTime - lhs.timestamp) / length);
+
+                        // if t=0 => lhs is used directly
+                        transform.localPosition = Vector3.Lerp(lhs.position, rhs.position, t);
+                        transform.localRotation = Quaternion.Slerp(lhs.rotation, rhs.rotation, t);
+                        print("posicion interpolada");
+                        return;
+                    }
+                }
+            }
+            // Use extrapolation
+            else
+            {
+                State latest = proxyStates[0];
+
+                float extrapolationLength = (float)(interpolationTime - latest.timestamp);
+                // Don't extrapolation for more than 500 ms, you would need to do that carefully
+                if (extrapolationLength < extrapolationLimit)
+                {
+                    transform.position = latest.position + latest.velocity * extrapolationLength;
+                    transform.rotation = latest.rotation;
+                }
+            }
+        }
+
+
+        
+        if (!isServer) return;
+        //Nada de Simulación en local, venga por qué no
+
         InputSteering = Mathf.Clamp(InputSteering, -1, 1);
         InputAcceleration = Mathf.Clamp(InputAcceleration, -1, 1);
         InputBrake = Mathf.Clamp(InputBrake, 0, 1);
@@ -302,13 +457,30 @@ public class PlayerController : NetworkBehaviour
     }
     /// <summary> Comando que resetea el valor de CurrentLap a 0. No la protegemos porque sólo podrían ejecutarse simultáneamente instancias de este comando, y todas ellas le asignan el mismo valor. </summary>
     [Command]
-    public void CmdResetLap()
+    public void CmdResetLap(int i)
     {
+        print("Buenas tardes desde el coche de " + m_PlayerInfo.Name);
         m_PolePositionManager.gameStarted = false;
         m_PolePositionManager.timerStarted = false;
         m_PolePositionManager.countdown = m_PolePositionManager.MAXCOUNTDOWN;
         CurrentLap = 0;
         m_PlayerInfo.times.Clear();
+
+        ////Ver qué está pasando aquí
+        transform.position = m_PolePositionManager.startingPoints[i].transform.position;
+        transform.eulerAngles = new Vector3(0,-90,0);
+        m_Rigidbody.velocity = Vector3.zero;
+        m_Rigidbody.angularVelocity = Vector3.zero;
+        RecursiveChangeLayer(gameObject, 0);
+    }
+    
+    public void RecursiveChangeLayer(GameObject obj, int layer)
+    {
+        obj.layer = layer;
+        foreach (Transform t in obj.transform)
+        {
+            RecursiveChangeLayer(t.gameObject, layer);
+        }
     }
     /// <summary> Comando que asigna true a la variable classified del PlayerInfo a través de un Rpc. También lo hace directamente en el servidor. </summary>
     [Command]
