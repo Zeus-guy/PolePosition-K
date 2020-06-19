@@ -87,7 +87,7 @@ public class SetupPlayer : NetworkBehaviour
     
     /// <summary> Comando que cambia el color del coche del jugador. </summary>
     [Command]
-    private void CmdChangeColour(int color)
+    public void CmdChangeColour(int color)
     {
         m_Colour = color;
         SetColour(0,color);
@@ -147,6 +147,7 @@ public class SetupPlayer : NetworkBehaviour
             m_PlayerController.CmdSetClassified();
             m_PlayerInfo.classified = true;
         }
+        m_PolePositionManager.UpdateRaceProgress(true);
     }
 
     /// <summary> Hook que cambia el nombre del jugador en su PlayerInfo. </summary>
@@ -160,23 +161,29 @@ public class SetupPlayer : NetworkBehaviour
     /// <summary> Hook que cambia el color del jugador en su PlayerInfo. </summary>
     private void SetColour(int oldColour, int newColour)
     {
-        Material[] materiales = CarSkin.materials;
-        switch (newColour)
+        CarSkin.materials = GetCarMaterials(CarSkin.materials, newColour);
+        
+    }
+    /// <summary> Función que devuelve un array de materiales según el color indicado, sólo funciona para coches. </summary>
+    public Material[] GetCarMaterials(Material[] sourceMaterials, int color)
+    {
+        Material[] materiales = sourceMaterials;
+        switch (color)
         {
-            case 1:
+            case 0:
                 materiales[1] = material_1;
                 break;
-            case 2:
+            case 1:
                 materiales[1] = material_2;
                 break;
-            case 3:
+            case 2:
                 materiales[1] = material_3;
                 break;
-            case 4:
+            case 3:
                 materiales[1] = material_4;
                 break;
         }
-        CarSkin.materials = materiales;
+        return materiales;
     }
 
     /// <summary>
@@ -249,7 +256,6 @@ public class SetupPlayer : NetworkBehaviour
         m_PlayerInfo.CheckPoint = 0;
         m_PlayerInfo.LastCheckPoint = 0;
         //m_PolePositionManager.UpdateUINames();
-        m_PolePositionManager.UpdateRaceProgress(true);
     }
 
     /// <summary> Función que deshabilita el PlayerController del jugador e indica que la partida ha finalizado. </summary>

@@ -61,6 +61,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Image[] lobbyPlayerBoxes;
     [SerializeField] private Text[] lobbyPlayerTexts;
     [SerializeField] private Dropdown classLapDropdown;
+    [SerializeField] private Dropdown colorDropdown;
+    [SerializeField] private Renderer UICar;
     #endregion
     private int dots = 0;
 
@@ -414,6 +416,7 @@ public class UIManager : MonoBehaviour
         NetworkManager.singleton.StopServer();
         ResetGame();
     }
+    /// <summary> Función que indica si la partida ha comenzado en el servidor. </summary>
     public void UpdateServerRemaining(int numPlayers)
     {
         string newText = "";
@@ -421,9 +424,16 @@ public class UIManager : MonoBehaviour
             newText = "WAITING FOR " + numPlayers + " PLAYER" + ((numPlayers == 1)?"":"s");
         serverText.text = "<b>SERVER RUNNING</b>\n" + newText;
     }
-
+    /// <summary> Función que actualiza la lista de nombres en el servidor. </summary>
     public void UpdateServerNames(string names)
     {
         serverNames.text = names;
+    }
+
+    /// <summary> Función que se activa al escoger el color, cambia tanto el del coche real como el de la interfaz. </summary>
+    public void OnColorDropdownChange()
+    {
+        m_PolePositionManager.m_LocalSetupPlayer.CmdChangeColour(colorDropdown.value);
+        UICar.materials = m_PolePositionManager.m_LocalSetupPlayer.GetCarMaterials(UICar.materials, colorDropdown.value);
     }
 }
