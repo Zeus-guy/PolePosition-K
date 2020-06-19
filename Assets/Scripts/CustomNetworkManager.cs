@@ -66,4 +66,11 @@ public class CustomNetworkManager : NetworkManager
 
             NetworkServer.AddPlayerForConnection(conn, player);
         }
+
+        /// <summary> Override de la función OnServerConnect de la clase NetworkManager.
+        /// <para> Si se intenta unir un jugador pero la partida ya ha comenzado, se le desconectará inmediatamente. </para> </summary>
+        public override void OnServerConnect(NetworkConnection conn) {
+            if (polePositionManager.countdownStarted)
+                conn.Disconnect();
+        }
 }

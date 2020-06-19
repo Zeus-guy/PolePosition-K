@@ -317,4 +317,23 @@ public class SetupPlayer : NetworkBehaviour
         m_PolePositionManager.RpcFinishGame();
         
     }
+
+    //Funciones importantes para el funcionamiento del chat
+    public static event Action<SetupPlayer, string> OnMessage;
+
+    /// <summary> Comando que envía mensajes del chat. </summary>
+    [Command]
+    public void CmdSend(string message)
+    {
+        if (message.Trim() != "")
+            RpcReceive(message.Trim());
+        OnMessage?.Invoke(this, message);
+    }
+
+    /// <summary> Rpc que se ocupa de recibir los mensajes del chat. </summary>
+    [ClientRpc]
+    public void RpcReceive(string message)
+    {
+        OnMessage?.Invoke(this, message);
+    }
 }
