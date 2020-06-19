@@ -152,7 +152,8 @@ public class PolePositionManager : NetworkBehaviour
     /// <summary> Toma un array ordenado y lo muestra por pantalla si la posición de alguno de los jugadores ha cambiado. </summary>
     public void UpdateRaceProgress(bool forceShow)
     {
-        PlayerInfo[] arr = SortPlayers();
+        bool playerLeft = false;
+        PlayerInfo[] arr = SortPlayers(ref playerLeft);
 
         string myRaceOrder = "";
 
@@ -176,7 +177,7 @@ public class PolePositionManager : NetworkBehaviour
 
         }
         
-        if (updatePosition || forceShow)
+        if (updatePosition || forceShow || playerLeft)
         {
             UI_m.SetTextPosition(myRaceOrder);
         }
@@ -390,7 +391,8 @@ public class PolePositionManager : NetworkBehaviour
             TimeSpan ts, bestTs;
             TimeSpan zeroTs = new TimeSpan(0);
 
-            PlayerInfo[] playerArray = SortPlayers();
+            bool forceChange = false;
+            PlayerInfo[] playerArray = SortPlayers(ref forceChange);
 
             for (int i = 0; i < maxLaps; i++)
             {
@@ -476,7 +478,7 @@ public class PolePositionManager : NetworkBehaviour
 
     /// <summary> Función que devuelve un array de jugadores ordenado.
     /// <para> Si se ha detectado que falta un jugador, se elimina de la lista. </para> </summary>
-    private PlayerInfo[] SortPlayers()
+    private PlayerInfo[] SortPlayers(ref bool playerRemoved)
     {
         // Update car arc-lengths
         float[] arcLengths = new float[m_Players.Count];
@@ -496,6 +498,7 @@ public class PolePositionManager : NetworkBehaviour
 
         if (removedPlayer)
         {
+            playerRemoved = true;
             UpdateUINames();
         }
 
