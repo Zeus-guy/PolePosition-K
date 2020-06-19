@@ -52,8 +52,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject quitConfirmationPanelLobby;
     [SerializeField] private PolePositionManager m_PolePositionManager;
     [SerializeField] private GameObject serverHUD;
-    [SerializeField] private Text serverText;
-    [SerializeField] private Text serverNames;
+    //[SerializeField] private Text serverText;
+    //[SerializeField] private Text serverNames;
     [SerializeField] private GameObject lobbyHUD;
     [SerializeField] private GameObject lobbyClient;
     [SerializeField] private GameObject lobbyServer;
@@ -67,6 +67,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Text clientClassLapText;
     [SerializeField] private Text clientNumLapsText;
     [SerializeField] private Dropdown endLapDropdown;
+    [SerializeField] private Text[] serverNames;
+
     #endregion
     private int dots = 0;
 
@@ -130,7 +132,7 @@ public class UIManager : MonoBehaviour
         mainMenu.SetActive(false);
         nameField.SetActive(false);
         //colorField.SetActive(false);
-        serverHUD.SetActive(true);
+        //serverHUD.SetActive(true);
     }
 
     /// <summary> Función que activa o desactiva la interfaz que indica que se está intentando realizar una conexión con el servidor. </summary>
@@ -334,7 +336,7 @@ public class UIManager : MonoBehaviour
         mainMenu.SetActive(false);
         inGameHUD.SetActive(false);
         endingHUD.SetActive(true);
-        serverHUD.SetActive(false);
+        //serverHUD.SetActive(false);
     }
 
     /// <summary> Función que actualiza el valor de las puntuaciones al final de la partida. </summary>
@@ -433,18 +435,31 @@ public class UIManager : MonoBehaviour
         NetworkManager.singleton.StopServer();
         ResetGame();
     }
-    /// <summary> Función que indica si la partida ha comenzado en el servidor. </summary>
-    public void UpdateServerRemaining(int numPlayers)
+    /// <summary> Esta función ya no se usa.
+    /// <para> Función que indica si la partida ha comenzado en el servidor. </para> </summary>
+    /*public void UpdateServerRemaining(int numPlayers)
     {
         string newText = "";
         if (numPlayers > 0)
             newText = "WAITING FOR " + numPlayers + " PLAYER" + ((numPlayers == 1)?"":"s");
         serverText.text = "<b>SERVER RUNNING</b>\n" + newText;
-    }
-    /// <summary> Función que actualiza la lista de nombres en el servidor. </summary>
+    }*/
+    ///<summary> Función que actualiza la lista de nombres en el servidor. </summary>
     public void UpdateServerNames(string names)
     {
-        serverNames.text = names;
+        //serverNames.text = names;
+        string[] splitNames = names.Split(new string[] {"\n"}, StringSplitOptions.None);
+        for (int i = 0; i < 4; i++)
+        {
+            if (i < splitNames.Length)
+            {
+                serverNames[i].text = splitNames[i];
+            }
+            else
+            {
+                serverNames[i].text = "";
+            }
+        }
     }
 
     /// <summary> Función que se activa al escoger el color, cambia tanto el del coche real como el de la interfaz. </summary>

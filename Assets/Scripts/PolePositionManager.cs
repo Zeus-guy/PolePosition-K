@@ -66,15 +66,15 @@ public class PolePositionManager : NetworkBehaviour
                 {
                     oldPlayersLeft = playersLeft;
                     UI_m.SetCountDown("Waiting for " + playersLeft + "\n"+" player" + ((playersLeft == 1)?"":"s"));
-                    if (isServerOnly)
-                        UI_m.UpdateServerRemaining(playersLeft);
+                    /*if (isServerOnly)
+                        UI_m.UpdateServerRemaining(playersLeft);*/
                 }
             }
 
             else if (countdown > -1.5)
             {
-                if (isServerOnly)
-                    UI_m.UpdateServerRemaining(0);
+                /*if (isServerOnly)
+                    UI_m.UpdateServerRemaining(0);*/
                 
                 countdown -= Time.deltaTime;
                 if (countdown > 0)
