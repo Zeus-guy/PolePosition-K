@@ -194,13 +194,13 @@ public class UIManager : MonoBehaviour
         m_PolePositionManager.m_LocalSetupPlayer.CmdPlayerReady();
     }
 
-    /// <summary> Función que se activa al escoger si hay o no vuelta de clasificación. </summary>
+    /// <summary> Función que se activa al escoger si hay o no vuelta de clasificación. No se protege classLap, porque sólo se ejecuta al seleccionar una opción desde la interfaz y es imposible seleccionar dos opciones simultáneamente. </summary>
     public void OnClassLapSelection()
     {
         m_PolePositionManager.classLap = (classLapDropdown.value==1);
         ClientChangeClassLap(classLapDropdown.value==1);
     }
-    /// <summary> Función que se activa al escoger el número de vueltas. </summary>
+    /// <summary> Función que se activa al escoger el número de vueltas. No se protege maxLaps, porque sólo se ejecuta al seleccionar una opción desde la interfaz y es imposible seleccionar múltiples opciones simultáneamente. </summary>
     public void OnNumLapSelection()
     {
         m_PolePositionManager.maxLaps = (numLapDropdown.value+1);

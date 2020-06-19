@@ -135,11 +135,6 @@ public class PlayerController : NetworkBehaviour
             ApplyLocalPositionToVisuals(axleInfo.rightWheel);
         }
 
-        SteerHelper();
-        SpeedLimiter();
-        AddDownForce();
-        TractionControl();
-
         if (currentDownTime <= 0)
         {
             m_Rigidbody.velocity = Vector3.zero;
@@ -148,6 +143,13 @@ public class PlayerController : NetworkBehaviour
             this.gameObject.transform.eulerAngles = checkPoints[m_PlayerInfo.LastCheckPoint].eulerAngles;
             currentDownTime = maxDownTime;
         }
+
+        SteerHelper();
+        SpeedLimiter();
+        AddDownForce();
+        TractionControl();
+
+        
     }
 
     #endregion
@@ -254,6 +256,8 @@ public class PlayerController : NetworkBehaviour
     {
         int nextCheckPoint = (m_PlayerInfo.CheckPoint + 1) % 6;
         int previousCheckPoint = (m_PlayerInfo.CheckPoint - 1) % 6;
+        if (previousCheckPoint <= -1)
+            previousCheckPoint = 5;
 
         if (int.Parse(col.name) == nextCheckPoint)
         {
@@ -283,20 +287,20 @@ public class PlayerController : NetworkBehaviour
     #endregion
 
     #region Commands
-    /// <summary> Comando que actualiza el valor de arcLength. </summary>
+    /// <summary> Comando que actualiza el valor de arcLength. No la protegemos porque da igual que se sustituya el valor, se quede el anterior o el nuevo se volverá a sustituir poco después.</summary>
     [Command]
     public void CmdUpdateArcLength(float newArcL)
     {
         arcLength = newArcL;
     }
 
-    /// <summary> Comando que incrementa el valor de CurrentLap. </summary>
+    /// <summary> Comando que incrementa el valor de CurrentLap. No lo protegemos porque sólo se llama desde la instancia del jugador dueño y está controlado que sólo se ejecuta una única vez cuando es necesario.</summary>
     [Command]
     public void CmdIncreaseLap()
     {
         CurrentLap++;
     }
-    /// <summary> Comando que resetea el valor de CurrentLap a 0. </summary>
+    /// <summary> Comando que resetea el valor de CurrentLap a 0. No la protegemos porque sólo podrían ejecutarse simultáneamente instancias de este comando, y todas ellas le asignan el mismo valor. </summary>
     [Command]
     public void CmdResetLap()
     {

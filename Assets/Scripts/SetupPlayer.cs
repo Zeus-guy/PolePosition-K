@@ -40,6 +40,7 @@ public class SetupPlayer : NetworkBehaviour
     public override void OnStartServer()
     {
         base.OnStartServer();
+        //No se protege m_ID, pues sólo se modifica al iniciar el servidor.
         m_ID = connectionToClient.connectionId;
         if (isServerOnly)
         {
@@ -76,7 +77,7 @@ public class SetupPlayer : NetworkBehaviour
         m_PlayerInfo.CanChangeLap = true;
     }
 
-    /// <summary> Comando que cambia el nombre del jugador. </summary>
+    /// <summary> Comando que cambia el nombre del jugador. No se protege m_Name porque sólo se cambia al iniciar el cliente local. </summary>
     [Command]
     private void CmdChangeName(string name)
     {
@@ -85,7 +86,7 @@ public class SetupPlayer : NetworkBehaviour
         SetName("",name);
     }
     
-    /// <summary> Comando que cambia el color del coche del jugador. </summary>
+    /// <summary> Comando que cambia el color del coche del jugador. No se protege, porque sólo se ejecuta al seleccionar una opción desde la interfaz y es imposible seleccionar múltiples opciones simultáneamente. </summary>
     [Command]
     public void CmdChangeColour(int color)
     {
@@ -93,7 +94,7 @@ public class SetupPlayer : NetworkBehaviour
         SetColour(0,color);
     }
 
-    /// <summary> Comando que asigna el valor true al booleano ready del jugador. </summary>
+    /// <summary> Comando que asigna el valor true al booleano ready del jugador. No la protegemos porque siempre se le asigna el mismo valor. </summary>
     [Command]
     public void CmdPlayerReady()
     {
@@ -208,16 +209,6 @@ public class SetupPlayer : NetworkBehaviour
         }
         SetName("", m_Name);
 
-        /*if (isLocalPlayer)
-        {
-            Dropdown Drop_color = GameObject.Find("ColourDropdown").GetComponent<Dropdown>();
-            m_Colour = Drop_color.value;
-            if (m_Colour == 0)
-                m_Colour = 1;
-            Drop_color.gameObject.SetActive(false);
-            CmdChangeColour(m_Colour);
-        }
-        SetColour(0, m_Colour);*/
     }
 
     #endregion

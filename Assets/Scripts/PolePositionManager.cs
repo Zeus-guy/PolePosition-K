@@ -66,16 +66,11 @@ public class PolePositionManager : NetworkBehaviour
                 {
                     oldPlayersLeft = playersLeft;
                     UI_m.SetCountDown("Waiting for " + playersLeft + "\n"+" player" + ((playersLeft == 1)?"":"s"));
-                    /*if (isServerOnly)
-                        UI_m.UpdateServerRemaining(playersLeft);*/
                 }
             }
 
             else if (countdown > -1.5)
             {
-                /*if (isServerOnly)
-                    UI_m.UpdateServerRemaining(0);*/
-                
                 countdown -= Time.deltaTime;
                 if (countdown > 0)
                     UI_m.EditCountDown(countdown);
@@ -88,6 +83,7 @@ public class PolePositionManager : NetworkBehaviour
                         {
                             RpcStartGame();
                             timer.Restart();
+                            //No protegemos countdownStarted porque sólo la modifica el servidor y siempre pasa a tener el mismo valor.
                             countdownStarted = true;
                         }
                         timerStarted = true;
@@ -197,7 +193,7 @@ public class PolePositionManager : NetworkBehaviour
 
 
     /// <summary> Función que se ocupa de resetear la información de la carrera y ordenar a los jugadores cuando todos finalizan
-    /// la vuelta de clasificación. </summary>
+    /// la vuelta de clasificación. No protegemos classLap porque siempre se le asigna el valor false. </summary>
     private void ResetClassLapPositions(PlayerInfo[] arr)
     {
         classLap = false;
@@ -508,7 +504,7 @@ public class PolePositionManager : NetworkBehaviour
         return arr;
     }
 
-    /// <summary> Cuando se inicia el servidor, se asigna el número máximo de jugadores previamente seleccionado por el host. </summary>
+    /// <summary> Cuando se inicia el servidor, se asigna el número máximo de jugadores previamente seleccionado por el host. No se protege Player_Count, pues sólo se ejecuta cuando se inicia el servidor.</summary>
     public override void OnStartServer()
     {
         Player_Count = Drop_Players.value+2;
