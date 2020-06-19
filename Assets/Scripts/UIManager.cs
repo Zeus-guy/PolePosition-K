@@ -64,6 +64,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Dropdown numLapDropdown;
     [SerializeField] private Dropdown colorDropdown;
     [SerializeField] private Renderer UICar;
+    [SerializeField] private GameObject UICarParent;
     [SerializeField] private Text clientClassLapText;
     [SerializeField] private Text clientNumLapsText;
     [SerializeField] private Dropdown endLapDropdown;
@@ -383,6 +384,7 @@ public class UIManager : MonoBehaviour
     /// <summary> Función que activa la interfaz que indica que se ha perdido la conexión con el servidor. </summary>
     public void ServerCrashMessage()
     {
+        UICarParent.SetActive(false);
         ToggleWaitingHUD(true);
         waitingReset.SetActive(true);
         waitingText.text = "Lost connection";
