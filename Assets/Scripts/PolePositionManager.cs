@@ -208,6 +208,7 @@ public class PolePositionManager : NetworkBehaviour
             arr[i].transform.position = startingPoints[i].transform.position;
             arr[i].transform.eulerAngles = new Vector3(0,-90,0);
             arr[i].controller.m_Rigidbody.velocity = Vector3.zero;
+            arr[i].controller.m_Rigidbody.angularVelocity = Vector3.zero;
             arr[i].controller.m_Rigidbody.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ;
             arr[i].CanChangeLap = true;
             arr[i].times.Clear();
