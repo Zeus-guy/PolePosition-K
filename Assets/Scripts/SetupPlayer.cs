@@ -355,7 +355,8 @@ public class SetupPlayer : NetworkBehaviour
     {
         if (message.Trim() != "")
             RpcReceive(message.Trim());
-        OnMessage?.Invoke(this, message);
+        if (isServerOnly)
+            OnMessage?.Invoke(this, message);
     }
 
     /// <summary> Rpc que se ocupa de recibir los mensajes del chat. </summary>
