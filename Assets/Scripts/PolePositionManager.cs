@@ -11,7 +11,6 @@ using UnityEngine.UI;
 /// <summary> Clase que maneja casi toda la lógica interna del juego. </summary>
 public class PolePositionManager : NetworkBehaviour
 {
-    //public int numPlayers;
     public readonly float MAXCOUNTDOWN = 3;
     public CustomNetworkManager networkManager;
     public UIManager UI_m;
@@ -27,6 +26,7 @@ public class PolePositionManager : NetworkBehaviour
     public readonly List<PlayerInfo> m_Players = new List<PlayerInfo>(4);
     private CircuitController m_CircuitController;
     private GameObject[] m_DebuggingSpheres;
+    private bool showDebugSpheres = false;
     public SetupPlayer m_LocalSetupPlayer;
     private Stopwatch timer;
     private int oldPlayersLeft = -1;
@@ -44,11 +44,14 @@ public class PolePositionManager : NetworkBehaviour
         networkManager.polePositionManager = this;
         if (m_CircuitController == null) m_CircuitController = FindObjectOfType<CircuitController>();
 
-        m_DebuggingSpheres = new GameObject[networkManager.maxConnections];
-        for (int i = 0; i < networkManager.maxConnections; ++i)
+        if (showDebugSpheres)
         {
-            m_DebuggingSpheres[i] = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            m_DebuggingSpheres[i].GetComponent<SphereCollider>().enabled = false;
+            m_DebuggingSpheres = new GameObject[networkManager.maxConnections];
+            for (int i = 0; i < networkManager.maxConnections; ++i)
+            {
+                m_DebuggingSpheres[i] = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                m_DebuggingSpheres[i].GetComponent<SphereCollider>().enabled = false;
+            }
         }
         timer = new Stopwatch();
     }
@@ -73,18 +76,26 @@ public class PolePositionManager : NetworkBehaviour
             {
                 countdown -= Time.deltaTime;
                 if (countdown > 0)
+                { 
+                    //No protegemos countdownStarted porque sólo la modifica el servidor y siempre pasa a tener el mismo valor.
+                    if (isServer && !countdownStarted)
+                        countdownStarted = true;
                     UI_m.EditCountDown(countdown);
+                }
+                       
                 else if (countdown <= 0)
                 {
                     UI_m.SetCountDown("GO!");
                     if (!timerStarted)
                     {
-                        if (isServer)
+                        if (NetworkServer.active)
                         {
                             RpcStartGame();
                             timer.Restart();
-                            //No protegemos countdownStarted porque sólo la modifica el servidor y siempre pasa a tener el mismo valor.
-                            countdownStarted = true;
+                            foreach (PlayerInfo p in m_Players)
+                            {
+                                p.controller.m_Rigidbody.constraints = RigidbodyConstraints.None;
+                            }
                         }
                         timerStarted = true;
                     }
@@ -96,8 +107,7 @@ public class PolePositionManager : NetworkBehaviour
                 gameStarted = true;
             }
         }
-        if (lobbyEnded)
-            UpdateRaceProgress(false);
+        UpdateRaceProgress(false);
     }
 
     /// <summary> Añade un PlayerInfo a m_Players. </summary>
@@ -186,7 +196,7 @@ public class PolePositionManager : NetworkBehaviour
             UI_m.SetCurTime(timer.Elapsed);
         }
         
-        if (startRace && resetedAfterClassLap)
+        if (startRace && resetedAfterClassLap && lobbyEnded)
         {
             ResetClassLapPositions(arr);
         }
@@ -256,7 +266,8 @@ public class PolePositionManager : NetworkBehaviour
 
         m_Players[ID].segIdx = segIdx;
 
-        this.m_DebuggingSpheres[ID].transform.position = carProj;
+        if (showDebugSpheres)
+            this.m_DebuggingSpheres[ID].transform.position = carProj;
 
         
 
@@ -344,7 +355,7 @@ public class PolePositionManager : NetworkBehaviour
                         if (player.controller.isLocalPlayer)
                             player.controller.CmdChangeTimes(timer.Elapsed.Ticks);
                         player.times.Add(timer.Elapsed);
-                        UI_m.SetLapTime(player.times[player.controller.CurrentLap-1]-player.times[player.controller.CurrentLap-2]);
+                        UI_m.SetLapTime(player.times[player.times.Count-1]-player.times[player.times.Count-2]);
                     }
                 }
                 if (player.controller.isLocalPlayer)
@@ -446,8 +457,8 @@ public class PolePositionManager : NetworkBehaviour
                 bestLap = bestLap + bt + "\n\n";
 
             }
-            
-            RpcChangeScores(names, laps, bestLap, total);
+            if (NetworkServer.active)
+                RpcChangeScores(names, laps, bestLap, total);
             if (isServerOnly)
                 ChangeScores(names, laps, bestLap, total);
         }
@@ -462,8 +473,6 @@ public class PolePositionManager : NetworkBehaviour
         {
             NetworkManager.singleton.StopClient();
         }
-        if(isServer)
-            NetworkManager.singleton.StopServer();
 
         //Mover la cámara del jugador a donde toca
         cameraPosition.position = new Vector3(0,2.82f,-10);

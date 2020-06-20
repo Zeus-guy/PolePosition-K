@@ -8,7 +8,6 @@ using System;
 /// <summary> Clase que hereda de NetworkManager y que se ocupa del comportamiento del servidor cuando se queda un jugador sólo en la partida. </summary>
 public class CustomNetworkManager : NetworkManager
 {
-    //Esto no es escalable
     private bool[] usedPositions = new bool[4];
     private int[] startingIds = new int[4];
     private bool closing;
@@ -33,6 +32,11 @@ public class CustomNetworkManager : NetworkManager
         if (!closing && numPlayers == 1 && polePositionManager != null && (polePositionManager.countdown < polePositionManager.MAXCOUNTDOWN) && polePositionManager.Player_Count > 1)
         {
             polePositionManager.FinishGame();
+        }
+        
+        if (numPlayers == 0 && polePositionManager.lobbyEnded && !closing)
+        {
+            StopServer();
         }
     }
 

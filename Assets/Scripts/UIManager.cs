@@ -38,7 +38,6 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Text endBestLap;
     [SerializeField] private Text endTotal;
     [SerializeField] private GameObject nameField;
-    //[SerializeField] private GameObject colorField;
     [SerializeField] private Dropdown maxPlayers;
     [SerializeField] private GameObject waitingBox;
     [SerializeField] private Text waitingText;
@@ -52,8 +51,6 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject quitConfirmationPanelLobby;
     [SerializeField] private PolePositionManager m_PolePositionManager;
     [SerializeField] private GameObject serverHUD;
-    //[SerializeField] private Text serverText;
-    //[SerializeField] private Text serverNames;
     [SerializeField] private GameObject lobbyHUD;
     [SerializeField] private GameObject lobbyClient;
     [SerializeField] private GameObject lobbyServer;
@@ -117,14 +114,12 @@ public class UIManager : MonoBehaviour
         inGameHUD.SetActive(false);
         endingHUD.SetActive(false);
         nameField.SetActive(true);
-        //colorField.SetActive(true);
     }
 
     /// <summary> Función que activa la interfaz in-game, y desactiva las demás. </summary>
     private void ActivateInGameHUD()
     {
         mainMenu.SetActive(false);
-        //inGameHUD.SetActive(true);
     }
     
     /// <summary> Función que activa la interfaz del servidor dedicado, y desactiva las demás. </summary>
@@ -132,8 +127,6 @@ public class UIManager : MonoBehaviour
     {
         mainMenu.SetActive(false);
         nameField.SetActive(false);
-        //colorField.SetActive(false);
-        //serverHUD.SetActive(true);
     }
 
     /// <summary> Función que activa o desactiva la interfaz que indica que se está intentando realizar una conexión con el servidor. </summary>
@@ -288,13 +281,12 @@ public class UIManager : MonoBehaviour
         textCountDown.fontSize = (int)(100*(ratio+0.5f));
     }
 
-    /// <summary> [TO-DO] Función que todavía no se usa para nada. </summary>
-    public void SetBackwardsText(float t)
+    /// <summary> Función que muestra un texto cuando el jugador va en dirección contraria. </summary>
+    public void SetBackwardsText(float t, string text)
     {
-        float cd = t/1;
-        textCountDown.text = "TURN AROUND";
+        textCountDown.text = text;
         Color color = textCountDown.color;
-        color.a = cd;
+        color.a = t;
         textCountDown.color = color;
     }
 
@@ -337,7 +329,6 @@ public class UIManager : MonoBehaviour
         mainMenu.SetActive(false);
         inGameHUD.SetActive(false);
         endingHUD.SetActive(true);
-        //serverHUD.SetActive(false);
     }
 
     /// <summary> Función que actualiza el valor de las puntuaciones al final de la partida. </summary>
@@ -354,7 +345,7 @@ public class UIManager : MonoBehaviour
     public void FadeIn()
     {
         lobbyHUD.SetActive(false);
-        fade.GetComponent<Animator>().SetTrigger("FadeIn");
+        fade.GetComponent<FadeController>().FadeIn();
     }
 
     /// <summary> Función que resetea el juego: Destruye el NetworkManager y recarga la escena. </summary>
@@ -437,19 +428,10 @@ public class UIManager : MonoBehaviour
         NetworkManager.singleton.StopServer();
         ResetGame();
     }
-    /// <summary> Esta función ya no se usa.
-    /// <para> Función que indica si la partida ha comenzado en el servidor. </para> </summary>
-    /*public void UpdateServerRemaining(int numPlayers)
-    {
-        string newText = "";
-        if (numPlayers > 0)
-            newText = "WAITING FOR " + numPlayers + " PLAYER" + ((numPlayers == 1)?"":"s");
-        serverText.text = "<b>SERVER RUNNING</b>\n" + newText;
-    }*/
+    
     ///<summary> Función que actualiza la lista de nombres en el servidor. </summary>
     public void UpdateServerNames(string names)
     {
-        //serverNames.text = names;
         string[] splitNames = names.Split(new string[] {"\n"}, StringSplitOptions.None);
         for (int i = 0; i < 4; i++)
         {

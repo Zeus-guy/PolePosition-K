@@ -183,6 +183,16 @@ MonoBehaviour:
   material_2: {fileID: 2100006, guid: 3d5bad26ead1fec4ea7cb4e3186c9d35, type: 3}
   material_3: {fileID: 2100004, guid: d58615398b1feae4d8576758de2eb2a2, type: 3}
   material_4: {fileID: 2100002, guid: d58615398b1feae4d8576758de2eb2a2, type: 3}
+  material_5:
+  - {fileID: 2100000, guid: ada2db88241d9ca40a0452ea000b19b0, type: 2}
+  - {fileID: 2100000, guid: 971beec636f8c564e96cbe777e3d57b9, type: 2}
+  - {fileID: 2100000, guid: 535617f3ef2ad3c4aaae425349f90ddf, type: 2}
+  material_6:
+  - {fileID: 2100000, guid: 7ba31c723700175489cbb4cfcda4bc4e, type: 2}
+  - {fileID: 2100000, guid: c05c6370ec4c495489c427f46797e868, type: 2}
+  - {fileID: 2100000, guid: 08d5cfe89afd21a42a44d7b146079888, type: 2}
+  carTire: {fileID: 2100000, guid: 365be6db3e9b01249af2c091fcdc3afc, type: 3}
+  glass: {fileID: 2100008, guid: 30ddd96dd4239554e879fab4e839f419, type: 3}
 --- !u!114 &3466774584401487325
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -232,6 +242,7 @@ MonoBehaviour:
   slipLimit: 0.2
   m_Rigidbody: {fileID: 0}
   currentDownTime: 2
+  backTrackTime: -1
   checkPoints: []
   arcLength: 0
   CurrentLap: 0

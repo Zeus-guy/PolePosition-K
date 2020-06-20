@@ -21,6 +21,10 @@ public class SetupPlayer : NetworkBehaviour
     [SerializeField] private Material material_2;
     [SerializeField] private Material material_3;
     [SerializeField] private Material material_4;
+    [SerializeField] private Material[] material_5;
+    [SerializeField] private Material[] material_6;
+    [SerializeField] private Material carTire;
+    [SerializeField] private Material glass;
 
     private UIManager m_UIManager;
     private NetworkManager m_NetworkManager;
@@ -134,7 +138,6 @@ public class SetupPlayer : NetworkBehaviour
                     if (!m_PolePositionManager.m_Players[i].controller.isLocalPlayer)
                     {
                         m_PlayerController.RecursiveChangeLayer(m_PolePositionManager.m_Players[i].gameObject, 9 + i);
-                        //m_PolePositionManager.m_Players[i].gameObject.layer = 9 + i;
                         m_PolePositionManager.m_Players[i].gameObject.transform.position = m_PolePositionManager.startingPoints[0].transform.position;
                     }
                 }
@@ -209,6 +212,17 @@ public class SetupPlayer : NetworkBehaviour
             case 3:
                 materiales[1] = material_4;
                 break;
+            case 4:
+                materiales = material_5;
+                break;
+            case 5:
+                materiales = material_6;
+                break;
+        }
+        if (color < 4)
+        {
+            materiales[0] = carTire;
+            materiales[2] = glass;
         }
         return materiales;
     }
@@ -260,7 +274,6 @@ public class SetupPlayer : NetworkBehaviour
                     m_PolePositionManager.gameStarted = true;
                 }
             m_PlayerController.OnSpeedChangeEvent += OnSpeedChangeEventHandler;
-            //ConfigureCamera();
         }
     }
 
@@ -272,7 +285,6 @@ public class SetupPlayer : NetworkBehaviour
         m_PlayerInfo.CanChangeLap = true;
         m_PlayerInfo.CheckPoint = 0;
         m_PlayerInfo.LastCheckPoint = 0;
-        //m_PolePositionManager.UpdateUINames();
     }
 
     /// <summary> Función que deshabilita el PlayerController del jugador e indica que la partida ha finalizado. </summary>
