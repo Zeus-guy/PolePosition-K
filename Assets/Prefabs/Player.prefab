@@ -247,6 +247,12 @@ MonoBehaviour:
   arcLength: 0
   CurrentLap: 0
   ready: 0
+  carRenderer:
+  - {fileID: 3124799276312422027}
+  - {fileID: 98004375410913302}
+  - {fileID: 1260831966421554681}
+  - {fileID: 2929294091901712096}
+  - {fileID: 3595525644704980441}
 --- !u!114 &6346869062069434778
 MonoBehaviour:
   m_ObjectHideFlags: 0

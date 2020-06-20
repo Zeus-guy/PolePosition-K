@@ -46,9 +46,13 @@ public class PlayerController : NetworkBehaviour
     [SyncVar] private float InputAcceleration;
     [SyncVar] private float InputSteering;
     [SyncVar] private float InputBrake;
+    private float prevInputAcceleration;
+    private float prevInputSteering;
+    private float prevInputBrake;
     [SyncVar(hook=nameof(ChangeSpeedHook))] private float m_CurrentSpeed = 0;
     private const double interpolationBackTime = 0.01;
     private const double extrapolationLimit = 0.5;
+    [SerializeField] private Renderer[] carRenderer;
 
     private struct State
     {
@@ -114,24 +118,43 @@ public class PlayerController : NetworkBehaviour
             InputAcceleration = Input.GetAxis("Vertical");
             InputSteering = Input.GetAxis(("Horizontal"));
             InputBrake = Input.GetAxis("Jump");
+            TrySendCommand();
         }
         if (isServer)
         {
             if (backTrackTime > -1)
             {
                 backTrackTime += Time.deltaTime;
-                m_UIManager.SetBackwardsText(backTrackTime, "WRONG WAY");
+                RpcSetBackwardsText(backTrackTime, "WRONG WAY");
             }
         }
     }
+    /// <summary> Método que notifica al servidor de cambios en los inputs. </summary>
+    private void TrySendCommand()
+    {
+        if (Math.Abs(InputAcceleration - prevInputAcceleration) > float.Epsilon || 
+            Math.Abs(InputSteering - prevInputSteering) > float.Epsilon || 
+            Math.Abs(InputBrake - prevInputBrake) > float.Epsilon)
+        {
+            prevInputAcceleration = InputAcceleration;
+            prevInputBrake = InputBrake;
+            prevInputSteering = InputSteering;
+            CmdUpdateInputs(InputAcceleration, InputSteering, InputBrake);
+        }
 
+    }
+
+    /// <summary> Rpc que indica si el jugador va al revés. </summary>
+    [ClientRpc]
+    private void RpcSetBackwardsText(float f, string text)
+    {
+        if (isLocalPlayer)
+            m_UIManager.SetBackwardsText(f, text);
+    }
     /// <summary> En FixedUpdate se actualizan las físicas según los valores tomados anteriormente de los inputs. 
     /// <para> También se devuelve al jugador al último checkpoint por el que ha pasado si lleva demasiado tiempo sin poder moverse o tocando la hierba. </para></summary>
     public void FixedUpdate()
     {
-        if (isLocalPlayer)
-            CmdUpdateInputs(InputAcceleration, InputSteering, InputBrake);
-
         if (isClientOnly)
         {
             // This is the target playback time of the rigid body
@@ -246,7 +269,7 @@ public class PlayerController : NetworkBehaviour
             this.gameObject.transform.eulerAngles = checkPoints[m_PlayerInfo.LastCheckPoint].eulerAngles;
             currentDownTime = maxDownTime;
             backTrackTime = -1;
-            m_UIManager.SetBackwardsText(0, "");
+            RpcSetBackwardsText(0, "");
         }
 
         SteerHelper();
@@ -389,6 +412,7 @@ public class PlayerController : NetworkBehaviour
             m_UIManager.SetLap(newLap, m_PolePositionManager.maxLaps);
     }
 
+    /// <summary> Función que cambia la capa de todos los hijos de un objeto recursivamente. </summary>
     public void RecursiveChangeLayer(GameObject obj, int layer)
     {
         obj.layer = layer;
@@ -396,6 +420,32 @@ public class PlayerController : NetworkBehaviour
         {
             RecursiveChangeLayer(t.gameObject, layer);
         }
+    }
+    
+    /// <summary> Función que activa o desactiva la visibilidad del coche. </summary>
+    public void SetRendererVisibility(bool visible)
+    {
+        foreach (Renderer r in carRenderer)
+        {
+            r.enabled = visible;
+        }
+    }
+    /// <summary> Función que resetea la información del jugador. </summary>
+    public void ResetLap(int i)
+    {
+        m_PolePositionManager.gameStarted = false;
+        m_PolePositionManager.timerStarted = false;
+        m_PolePositionManager.countdown = m_PolePositionManager.MAXCOUNTDOWN;
+        CurrentLap = 0;
+        m_PlayerInfo.CheckPoint = 0;
+        m_PlayerInfo.LastCheckPoint = 0;
+
+        transform.position = m_PolePositionManager.startingPoints[i].transform.position;
+        transform.eulerAngles = new Vector3(0,-90,0);
+        m_Rigidbody.velocity = Vector3.zero;
+        m_Rigidbody.angularVelocity = Vector3.zero;
+        m_Rigidbody.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ;
+        RecursiveChangeLayer(gameObject, 0);
     }
     #endregion
 
@@ -417,18 +467,7 @@ public class PlayerController : NetworkBehaviour
     [Command]
     public void CmdResetLap(int i)
     {
-        m_PolePositionManager.gameStarted = false;
-        m_PolePositionManager.timerStarted = false;
-        m_PolePositionManager.countdown = m_PolePositionManager.MAXCOUNTDOWN;
-        CurrentLap = 0;
-        m_PlayerInfo.times.Clear();
-
-        transform.position = m_PolePositionManager.startingPoints[i].transform.position;
-        transform.eulerAngles = new Vector3(0,-90,0);
-        m_Rigidbody.velocity = Vector3.zero;
-        m_Rigidbody.angularVelocity = Vector3.zero;
-        m_Rigidbody.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ;
-        RecursiveChangeLayer(gameObject, 0);
+        ResetLap(i);
     }
     
     /// <summary> Comando que asigna true a la variable classified del PlayerInfo a través de un Rpc. También lo hace directamente en el servidor. </summary>
@@ -437,6 +476,8 @@ public class PlayerController : NetworkBehaviour
     {
         RpcSetClassified();
         m_PlayerInfo.classified = true;
+        m_Rigidbody.velocity = Vector3.zero;
+        m_Rigidbody.angularVelocity = Vector3.zero;
     }
     /// <summary> Comando que guarda el tiempo de la vuelta indicada. </summary>
     [Command]
@@ -447,6 +488,16 @@ public class PlayerController : NetworkBehaviour
             m_PlayerInfo.times.Add(new TimeSpan(time));
         }
         RpcChangeTimes(time);
+    }
+    /// <summary> Comando que guarda el tiempo de la vuelta de clasificación. </summary>
+    [Command]
+    public void CmdChangeClassTime(long time)
+    {
+        if (isServer)
+        {
+            m_PlayerInfo.classTime = new TimeSpan(time);
+        }
+        RpcChangeClassTime(time);
     }
     
     /// <summary> Comando que envía los inputs al servidor. </summary>
@@ -474,6 +525,12 @@ public class PlayerController : NetworkBehaviour
     private void RpcChangeTimes(long time)
     {
         m_PlayerInfo.times.Add(new TimeSpan(time));
+    }
+    /// <summary> Cambia el tiempo de clasificación del jugador en todos los clientes. </summary>
+    [ClientRpc]
+    private void RpcChangeClassTime(long time)
+    {
+        m_PlayerInfo.classTime = new TimeSpan(time);
     }
 
     /// <summary> Rpc que almacena las posiciones recibidas en un buffer.

@@ -26,6 +26,7 @@ public class PlayerInfo : MonoBehaviour
     public bool CanChangeLap { get; set; }
 
     public List<TimeSpan> times = new List<TimeSpan>();
+    public TimeSpan classTime;
 
     public int segIdx = 23;
 

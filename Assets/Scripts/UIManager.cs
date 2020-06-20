@@ -28,6 +28,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Text textLaps;
     [SerializeField] private Text textPosition;
     [SerializeField] private Text textCountDown;
+    [SerializeField] private Text textBackwards;
     [SerializeField] private Text curTimeText;
     [SerializeField] private Text totalTimeText;
     [SerializeField] private Image fade;
@@ -284,10 +285,10 @@ public class UIManager : MonoBehaviour
     /// <summary> Función que muestra un texto cuando el jugador va en dirección contraria. </summary>
     public void SetBackwardsText(float t, string text)
     {
-        textCountDown.text = text;
-        Color color = textCountDown.color;
+        textBackwards.text = text;
+        Color color = textBackwards.color;
         color.a = t;
-        textCountDown.color = color;
+        textBackwards.color = color;
     }
 
     /// <summary> Función que asigna al texto de las posiciones un valor. </summary>

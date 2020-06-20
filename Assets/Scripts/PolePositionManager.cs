@@ -195,7 +195,6 @@ public class PolePositionManager : NetworkBehaviour
         {
             UI_m.SetCurTime(timer.Elapsed);
         }
-        
         if (startRace && resetedAfterClassLap && lobbyEnded)
         {
             ResetClassLapPositions(arr);
@@ -209,10 +208,10 @@ public class PolePositionManager : NetworkBehaviour
     {
         classLap = false;
         resetedAfterClassLap = false;
-        Array.Sort(arr, ((a, b) => a.times[0].Ticks.CompareTo(b.times[0].Ticks)));
+        Array.Sort(arr, ((a, b) => a.classTime.Ticks.CompareTo(b.classTime.Ticks)));
         for (int i = 0; i < arr.Length; i++)
         {
-            arr[i].gameObject.SetActive(true);
+            arr[i].controller.SetRendererVisibility(true);
             arr[i].transform.position = startingPoints[i].transform.position;
             arr[i].transform.eulerAngles = new Vector3(0,-90,0);
             arr[i].controller.m_Rigidbody.velocity = Vector3.zero;
@@ -221,7 +220,11 @@ public class PolePositionManager : NetworkBehaviour
             arr[i].CanChangeLap = true;
             arr[i].times.Clear();
             if (arr[i].controller.isLocalPlayer)
+            {
                 arr[i].controller.CmdResetLap(i);
+                if (isServer)
+                    arr[i].controller.ResetLap(i);
+            }
         }
         gameStarted = false;
         timerStarted = false;
@@ -323,7 +326,7 @@ public class PolePositionManager : NetworkBehaviour
                         {
                             if (player.controller.isLocalPlayer)
                             {
-                                player.controller.CmdChangeTimes(timer.Elapsed.Ticks);
+                                player.controller.CmdChangeClassTime(timer.Elapsed.Ticks);
                                 timer.Stop();
                                 player.controller.enabled = false;
                                 UI_m.SetCountDown("WAITING FOR\n OTHER PLAYERS");
@@ -433,7 +436,7 @@ public class PolePositionManager : NetworkBehaviour
                     }
                 }
                 
-                if (p.times.Count == maxLaps)
+                if (p.times.Count >= maxLaps)
                 {
                     ts = p.times[maxLaps-1];
                     tt = String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds);
@@ -478,6 +481,7 @@ public class PolePositionManager : NetworkBehaviour
         cameraPosition.position = new Vector3(0,2.82f,-10);
         cameraPosition.localEulerAngles = Vector3.zero;
         
+        UI_m.AddEndDropdownLaps(laps.Length);
         //FadeIn
         UI_m.FadeIn();
     }
@@ -553,7 +557,6 @@ public class PolePositionManager : NetworkBehaviour
     void RpcChangeScores(string names, string[] laps, string bestLap, string total)
     {
         ChangeScores(names, laps, bestLap, total);
-        UI_m.AddEndDropdownLaps(laps.Length);
     }
 
     #endregion
@@ -568,7 +571,8 @@ public class PolePositionManager : NetworkBehaviour
     /// <summary> Hook que actualiza un booleano interno dependiente de si hay o no vuelta de clasificación. </summary>
     public void ClassLapHook(bool oldVal, bool newVal)
     {
-        resetedAfterClassLap = newVal;
+        if (!lobbyEnded)
+            resetedAfterClassLap = newVal;
         UI_m.ClientChangeClassLap(newVal);
     }
 

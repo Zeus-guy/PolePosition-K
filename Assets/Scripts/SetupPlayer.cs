@@ -135,9 +135,9 @@ public class SetupPlayer : NetworkBehaviour
             {
                 for (int i = 0; i < m_PolePositionManager.m_Players.Count; i++)
                 {
+                    m_PolePositionManager.m_Players[i].controller.RecursiveChangeLayer(m_PolePositionManager.m_Players[i].gameObject, 9 + i);
                     if (!m_PolePositionManager.m_Players[i].controller.isLocalPlayer)
                     {
-                        m_PlayerController.RecursiveChangeLayer(m_PolePositionManager.m_Players[i].gameObject, 9 + i);
                         m_PolePositionManager.m_Players[i].gameObject.transform.position = m_PolePositionManager.startingPoints[0].transform.position;
                     }
                 }
@@ -167,7 +167,7 @@ public class SetupPlayer : NetworkBehaviour
             {
                 if (!p.controller.isLocalPlayer)
                 {
-                    p.gameObject.SetActive(false);
+                    p.controller.SetRendererVisibility(false);
                 }
             }
             m_PolePositionManager.m_LocalSetupPlayer.gameObject.transform.position = m_PolePositionManager.startingPoints[0].transform.position;
